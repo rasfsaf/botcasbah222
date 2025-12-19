@@ -19,7 +19,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 # =============== КОНФИГУРАЦИЯ ===============
 TOKEN = "8534556244:AAHY2I4IQn0ltUqcATx_SIM4ut_9n_nyTNg"
 USERS_DATA_FILE = "users_data.json"
-
+REF_BONUS = 10000  # бонус за одного реферала в Хэш-Фугасах
 bot = Bot(token=TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
@@ -82,15 +82,21 @@ def save_users_data():
 def get_user(user_id: int) -> dict:
     """Получить данные пользователя или создать новые"""
     user_id_str = str(user_id)
+
     if user_id_str not in users_data:
         users_data[user_id_str] = {
             'hash_fugasy': 1000,
             'total_won': 0,
             'total_lost': 0,
             'games_played': 0,
-            'username': 'Unknown'
+            'username': 'Unknown',
+            # === РЕФЕРАЛКА ===
+            'referrer_id': None,          # кто пригласил этого пользователя
+            'referrals': [],              # список user_id приглашённых
+            'referral_bonus_received': 0  # сколько бонусов получил за рефералов
         }
         save_users_data()
+
     return users_data[user_id_str]
 
 def save_user(user_id: int, data: dict):
@@ -125,17 +131,76 @@ def create_main_menu(user: dict, player_name: str) -> str:
 # =============== ГЛАВНОЕ МЕНЮ ===============
 @dp.message(Command("start"))
 async def start_command(message: types.Message, state: FSMContext):
-    """Начало работы бота"""
+    """Начало работы бота + реферальная система"""
     user_id = message.from_user.id
+    text = message.text or "/start"
+
+    # Парсим возможный параметр: /start <referrer_id>
+    parts = text.split(maxsplit=1)
+    referrer_id = None
+    if len(parts) > 1:
+        try:
+            referrer_id = int(parts[1])
+        except ValueError:
+            referrer_id = None
+
     user = get_user(user_id)
+    is_new_user = (user.get("username") == "Unknown")
+
+    # Если пользователь новый и пришёл по реферальной ссылке
+    if is_new_user and referrer_id and referrer_id != user_id:
+        ref_user = get_user(referrer_id)
+
+        # Запоминаем пригласившего
+        user['referrer_id'] = referrer_id
+        save_user(user_id, user)
+
+        # Добавляем в список его рефералов и начисляем бонус
+        if user_id not in ref_user['referrals']:
+            ref_user['referrals'].append(user_id)
+            ref_user['hash_fugasy'] += REF_BONUS
+            ref_user['referral_bonus_received'] += REF_BONUS
+            save_user(referrer_id, ref_user)
+
+            # Пытаемся уведомить пригласившего в ЛС
+            try:
+                await bot.send_message(
+                    referrer_id,
+                    f"👥 Новый реферал: {message.from_user.first_name or 'Игрок'}!\n"
+                    f"Вы получили бонус {REF_BONUS} Хэш-Фугасов 💰"
+                )
+            except Exception:
+                pass
+
+keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    [
+        InlineKeyboardButton(text="🎡 Рулетка", callback_data="game_roulette"),
+        InlineKeyboardButton(text="♠️ Black Jack", callback_data="game_blackjack")
+    ],
+    [
+        InlineKeyboardButton(text="🎡 Рулетка в группе", callback_data="group_roulette_menu")
+    ],
+    [
+        InlineKeyboardButton(text="♠️ Black Jack в группе", callback_data="group_blackjack_menu")
+    ],
+    [
+        InlineKeyboardButton(text="📊 Статистика", callback_data="stats"),
+        InlineKeyboardButton(text="💰 Баланс", callback_data="balance")
+    ],
+    [
+        InlineKeyboardButton(text="👥 Рефералы", callback_data="referrals_menu")
+    ]
+])
+
+
+    # Обычная инициализация пользователя
     player_name = get_user_name(message.from_user)
     user['username'] = player_name
     save_user(user_id, user)
-    
+
     await state.set_state(GameStates.main_menu)
-    
+
     welcome_text = create_main_menu(user, player_name)
-    
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="🎡 Рулетка", callback_data="game_roulette"),
@@ -150,10 +215,14 @@ async def start_command(message: types.Message, state: FSMContext):
         [
             InlineKeyboardButton(text="📊 Статистика", callback_data="stats"),
             InlineKeyboardButton(text="💰 Баланс", callback_data="balance")
+        ],
+        [
+            InlineKeyboardButton(text="👥 Рефералы", callback_data="referrals_menu")
         ]
     ])
-    
+
     await message.answer(welcome_text, reply_markup=keyboard, parse_mode="Markdown")
+
 
 # =============== РУЛЕТКА (личная) ===============
 @dp.callback_query(lambda c: c.data == "game_roulette")
@@ -1137,3 +1206,37 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+BOT_USERNAME = "BABAHA Casino"  # без @, замени на реальный username бота
+
+@dp.callback_query(lambda c: c.data == "referrals_menu")
+async def referrals_menu(callback: types.CallbackQuery):
+    """Меню реферальной программы"""
+    user_id = callback.from_user.id
+    user = get_user(user_id)
+
+    referrals = user.get('referrals', [])
+    referrals_count = len(referrals)
+    bonus_total = user.get('referral_bonus_received', 0)
+
+    ref_link = f"https://t.me/{BOT_USERNAME}?start={user_id}"
+
+    text = f"""
+👥 **РЕФЕРАЛЬНАЯ ПРОГРАММА** 👥
+
+Приглашайте друзей и получайте {REF_BONUS} Хэш-Фугасов за каждого!
+
+**Ваша реферальная ссылка:**
+`{ref_link}`
+
+**Статистика:**
+• Приглашено: {referrals_count}
+• Получено бонусов: {bonus_total} Хэш-Фугасов
+"""
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu")]
+    ])
+
+    await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
+    await callback.answer()
