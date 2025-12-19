@@ -5,26 +5,30 @@
 import asyncio
 import json
 import os
-from datetime import datetime
 from typing import Dict, List
 import random
 
 from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command, StateFilter
+from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.fsm.storage.memory import MemoryStorage
 
 # =============== КОНФИГУРАЦИЯ ===============
+
 TOKEN = "8534556244:AAHY2I4IQn0ltUqcATx_SIM4ut_9n_nyTNg"
 USERS_DATA_FILE = "users_data.json"
 REF_BONUS = 10000  # бонус за одного реферала в Хэш-Фугасах
+
+BOT_USERNAME = "BABAHA_CasinoBot"  # без @, замени на реальный username
+
 bot = Bot(token=TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
 # =============== СКЛОНЕНИЯ ===============
+
 def declension(num: int, word1: str, word2: str, word5: str) -> str:
     """Правильное склонение слова по числу"""
     if num % 10 == 1 and num % 100 != 11:
@@ -40,6 +44,7 @@ def format_currency(num: int) -> str:
     return f"**{num}** 🪙 {word}"
 
 # =============== СОСТОЯНИЯ ===============
+
 class GameStates(StatesGroup):
     main_menu = State()
     roulette_betting = State()
@@ -51,11 +56,13 @@ class GameStates(StatesGroup):
     group_blackjack_playing = State()
 
 # =============== БАЗА ДАННЫХ ===============
+
 users_data: Dict[int, dict] = {}
 group_roulette_games: Dict[int, dict] = {}
 group_blackjack_games: Dict[int, dict] = {}
 
 # =============== ФУНКЦИИ СОХРАНЕНИЯ/ЗАГРУЗКИ ===============
+
 def load_users_data():
     """Загрузить данные пользователей из файла"""
     global users_data
@@ -63,7 +70,7 @@ def load_users_data():
         try:
             with open(USERS_DATA_FILE, 'r', encoding='utf-8') as f:
                 users_data = json.load(f)
-                print(f"✅ Загружено {len(users_data)} пользователей из файла")
+            print(f"✅ Загружено {len(users_data)} пользователей из файла")
         except Exception as e:
             print(f"❌ Ошибка при загрузке данных: {e}")
             users_data = {}
@@ -91,9 +98,9 @@ def get_user(user_id: int) -> dict:
             'games_played': 0,
             'username': 'Unknown',
             # === РЕФЕРАЛКА ===
-            'referrer_id': None,          # кто пригласил этого пользователя
-            'referrals': [],              # список user_id приглашённых
-            'referral_bonus_received': 0  # сколько бонусов получил за рефералов
+            'referrer_id': None,             # кто пригласил этого пользователя
+            'referrals': [],                 # список user_id приглашённых
+            'referral_bonus_received': 0     # сколько бонусов получил за рефералов
         }
         save_users_data()
 
@@ -125,10 +132,135 @@ def create_main_menu(user: dict, player_name: str) -> str:
 4️⃣ **Black Jack в группе** - групповая игра
 
 Выберите игру или посмотрите статистику!
-    """
+"""
     return welcome_text
 
-# =============== ГЛАВНОЕ МЕНЮ ===============
+def main_menu_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🎡 Рулетка", callback_data="game_roulette"),
+            InlineKeyboardButton(text="♠️ Black Jack", callback_data="game_blackjack")
+        ],
+        [
+            InlineKeyboardButton(text="🎡 Рулетка в группе", callback_data="group_roulette_menu")
+        ],
+        [
+            InlineKeyboardButton(text="♠️ Black Jack в группе", callback_data="group_blackjack_menu")
+        ],
+        [
+            InlineKeyboardButton(text="📊 Статистика", callback_data="stats"),
+            InlineKeyboardButton(text="💰 Баланс", callback_data="balance")
+        ],
+        [
+            InlineKeyboardButton(text="👥 Рефералы", callback_data="referrals_menu")
+        ]
+    ])
+
+# =============== ГЛАВНОЕ МЕНЮ И РЕФЕРАЛКА ===============
+
+@dp.message(Command("start"))
+async def start_command(message: types.Message, state: FSMContext):
+    """Начало работы бота + реферальная система"""
+    user_id = message.from_user.id
+    text = message.text or "/start"
+
+    # Парсим возможный параметр: /start <referrer_id>
+    parts = text.split(maxsplit=1)
+    referrer_id = None
+    if len(parts) > 1:
+        try:
+            referrer_id = int(parts[1])
+        except ValueError:
+            referrer_id = None
+
+    user = get_user(user_id)
+    is_new_user = (user.get("username") == "Unknown")
+
+    # Если пользователь новый и пришёл по реферальной ссылке
+    if is_new_user and referrer_id and referrer_id != user_id:
+        ref_user = get_user(referrer_id)
+
+        # Запоминаем пригласившего
+        user['referrer_id'] = referrer_id
+        save_user(user_id, user)
+
+        # Добавляем в список его рефералов и начисляем бонус
+        if user_id not in ref_user['referrals']:
+            ref_user['referrals'].append(user_id)
+            ref_user['hash_fugasy'] += REF_BONUS
+            ref_user['referral_bonus_received'] += REF_BONUS
+            save_user(referrer_id, ref_user)
+
+            # Пытаемся уведомить пригласившего в ЛС
+            try:
+                await bot.send_message(
+                    referrer_id,
+                    f"👥 Новый реферал: {message.from_user.first_name or 'Игрок'}!\n"
+                    f"Вы получили бонус {REF_BONUS} Хэш-Фугасов 💰"
+                )
+            except Exception:
+                pass
+
+    # Обычная инициализация пользователя
+    player_name = get_user_name(message.from_user)
+    user['username'] = player_name
+    save_user(user_id, user)
+
+    await state.set_state(GameStates.main_menu)
+
+    welcome_text = create_main_menu(user, player_name)
+    keyboard = main_menu_keyboard()
+
+    await message.answer(welcome_text, reply_markup=keyboard, parse_mode="Markdown")
+
+@dp.callback_query(lambda c: c.data == "back_to_menu")
+async def back_to_menu(callback: types.CallbackQuery, state: FSMContext):
+    """Вернуться в главное меню"""
+    user_id = callback.from_user.id
+    user = get_user(user_id)
+    player_name = get_user_name(callback.from_user)
+
+    await state.set_state(GameStates.main_menu)
+
+    welcome_text = create_main_menu(user, player_name)
+    keyboard = main_menu_keyboard()
+
+    await callback.message.edit_text(welcome_text, reply_markup=keyboard, parse_mode="Markdown")
+    await callback.answer()
+
+@dp.callback_query(lambda c: c.data == "referrals_menu")
+async def referrals_menu(callback: types.CallbackQuery):
+    """Меню реферальной программы"""
+    user_id = callback.from_user.id
+    user = get_user(user_id)
+
+    referrals = user.get('referrals', [])
+    referrals_count = len(referrals)
+    bonus_total = user.get('referral_bonus_received', 0)
+
+    ref_link = f"https://t.me/{BOT_USERNAME}?start={user_id}"
+
+    text = f"""
+👥 **РЕФЕРАЛЬНАЯ ПРОГРАММА** 👥
+
+Приглашайте друзей и получайте {REF_BONUS} Хэш-Фугасов за каждого!
+
+**Ваша реферальная ссылка:**
+`{ref_link}`
+
+**Статистика:**
+• Приглашено: {referrals_count}
+• Получено бонусов: {bonus_total} Хэш-Фугасов
+"""
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu")]
+    ])
+
+    await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
+    await callback.answer()
+
+
 @dp.message(Command("start"))
 async def start_command(message: types.Message, state: FSMContext):
     """Начало работы бота + реферальная система"""
@@ -1172,6 +1304,115 @@ async def back_to_menu(callback: types.CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
     user = get_user(user_id)
     player_name = get_user_name(callback.from_user)
+
+    await state.set_state(GameStates.main_menu)
+
+    welcome_text = create_main_menu(user, player_name)
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🎡 Рулетка", callback_data="game_roulette"),
+            InlineKeyboardButton(text="♠️ Black Jack", callback_data="game_blackjack")
+        ],
+        [
+            InlineKeyboardButton(text="🎡 Рулетка в группе", callback_data="group_roulette_menu")
+        ],
+        [
+            InlineKeyboardButton(text="♠️ Black Jack в группе", callback_data="group_blackjack_menu")
+        ],
+        [
+            InlineKeyboardButton(text="📊 Статистика", callback_data="stats"),
+            InlineKeyboardButton(text="💰 Баланс", callback_data="balance")
+        ],
+        [
+            InlineKeyboardButton(text="👥 Рефералы", callback_data="referrals_menu")
+        ]
+    ])
+
+    await callback.message.edit_text(welcome_text, reply_markup=keyboard, parse_mode="Markdown")
+    await callback.answer()
+
+# username бота (без @). ВАЖНО: объявляем ДО хэндлеров, а не в самом низу файла.
+BOT_USERNAME = "BABAHA_CasinoBot"  # замени на реальный username
+
+@dp.message(Command("start"))
+async def start_command(message: types.Message, state: FSMContext):
+    """Начало работы бота + реферальная система"""
+    user_id = message.from_user.id
+    text = message.text or "/start"
+
+    # Парсим возможный параметр: /start <referrer_id>
+    parts = text.split(maxsplit=1)
+    referrer_id = None
+    if len(parts) > 1:
+        try:
+            referrer_id = int(parts[1])
+        except ValueError:
+            referrer_id = None
+
+    user = get_user(user_id)
+    is_new_user = (user.get("username") == "Unknown")
+
+    # Если пользователь новый и пришёл по реферальной ссылке
+    if is_new_user and referrer_id and referrer_id != user_id:
+        ref_user = get_user(referrer_id)
+
+        # Запоминаем пригласившего
+        user['referrer_id'] = referrer_id
+        save_user(user_id, user)
+
+        # Добавляем в список его рефералов и начисляем бонус
+        if user_id not in ref_user['referrals']:
+            ref_user['referrals'].append(user_id)
+            ref_user['hash_fugasy'] += REF_BONUS
+            ref_user['referral_bonus_received'] += REF_BONUS
+            save_user(referrer_id, ref_user)
+
+            # Пытаемся уведомить пригласившего в ЛС
+            try:
+                await bot.send_message(
+                    referrer_id,
+                    f"👥 Новый реферал: {message.from_user.first_name or 'Игрок'}!\n"
+                    f"Вы получили бонус {REF_BONUS} Хэш-Фугасов 💰"
+                )
+            except Exception:
+                pass
+
+    # Обычная инициализация пользователя
+    player_name = get_user_name(message.from_user)
+    user['username'] = player_name
+    save_user(user_id, user)
+
+    await state.set_state(GameStates.main_menu)
+
+    welcome_text = create_main_menu(user, player_name)
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🎡 Рулетка", callback_data="game_roulette"),
+            InlineKeyboardButton(text="♠️ Black Jack", callback_data="game_blackjack")
+        ],
+        [
+            InlineKeyboardButton(text="🎡 Рулетка в группе", callback_data="group_roulette_menu")
+        ],
+        [
+            InlineKeyboardButton(text="♠️ Black Jack в группе", callback_data="group_blackjack_menu")
+        ],
+        [
+            InlineKeyboardButton(text="📊 Статистика", callback_data="stats"),
+            InlineKeyboardButton(text="💰 Баланс", callback_data="balance")
+        ],
+        [
+            InlineKeyboardButton(text="👥 Рефералы", callback_data="referrals_menu")
+        ]
+    ])
+
+    await message.answer(welcome_text, reply_markup=keyboard, parse_mode="Markdown")
+
+@dp.callback_query(lambda c: c.data == "back_to_menu")
+async def back_to_menu(callback: types.CallbackQuery, state: FSMContext):
+    """Вернуться в главное меню"""
+    user_id = callback.from_user.id
+    user = get_user(user_id)
+    player_name = get_user_name(callback.from_user)
     
     await state.set_state(GameStates.main_menu)
     
@@ -1207,36 +1448,3 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 
-BOT_USERNAME = "BABAHA Casino"  # без @, замени на реальный username бота
-
-@dp.callback_query(lambda c: c.data == "referrals_menu")
-async def referrals_menu(callback: types.CallbackQuery):
-    """Меню реферальной программы"""
-    user_id = callback.from_user.id
-    user = get_user(user_id)
-
-    referrals = user.get('referrals', [])
-    referrals_count = len(referrals)
-    bonus_total = user.get('referral_bonus_received', 0)
-
-    ref_link = f"https://t.me/{BOT_USERNAME}?start={user_id}"
-
-    text = f"""
-👥 **РЕФЕРАЛЬНАЯ ПРОГРАММА** 👥
-
-Приглашайте друзей и получайте {REF_BONUS} Хэш-Фугасов за каждого!
-
-**Ваша реферальная ссылка:**
-`{ref_link}`
-
-**Статистика:**
-• Приглашено: {referrals_count}
-• Получено бонусов: {bonus_total} Хэш-Фугасов
-"""
-
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu")]
-    ])
-
-    await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
-    await callback.answer()
