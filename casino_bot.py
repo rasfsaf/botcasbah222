@@ -175,14 +175,20 @@ async def roulette_menu(callback: types.CallbackQuery, state: FSMContext):
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="10 🪙", callback_data="roulette_bet_10"),
-            InlineKeyboardButton(text="50 🪙", callback_data="roulette_bet_50"),
-            InlineKeyboardButton(text="100 🪙", callback_data="roulette_bet_100")
-        ],
-        [
-            InlineKeyboardButton(text="250 🪙", callback_data="roulette_bet_250"),
-            InlineKeyboardButton(text="500 🪙", callback_data="roulette_bet_500")
-        ],
+    InlineKeyboardButton(text="10 🪙", callback_data="roulette_bet_10"),
+    InlineKeyboardButton(text="50 🪙", callback_data="roulette_bet_50"),
+    InlineKeyboardButton(text="100 🪙", callback_data="roulette_bet_100")
+],
+[
+    InlineKeyboardButton(text="250 🪙", callback_data="roulette_bet_250"),
+    InlineKeyboardButton(text="500 🪙", callback_data="roulette_bet_500"),
+    InlineKeyboardButton(text="1000 🪙", callback_data="roulette_bet_1000")
+],
+[
+    InlineKeyboardButton(text="5000 🪙", callback_data="roulette_bet_5000"),
+    InlineKeyboardButton(text="10000 🪙", callback_data="roulette_bet_10000"),
+    InlineKeyboardButton(text="20000 🪙", callback_data="roulette_bet_20000")
+]
         [
             InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu")
         ]
@@ -663,14 +669,21 @@ async def group_roulette_menu(callback: types.CallbackQuery, state: FSMContext):
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="10 🪙", callback_data="group_bet_10"),
-            InlineKeyboardButton(text="50 🪙", callback_data="group_bet_50"),
-            InlineKeyboardButton(text="100 🪙", callback_data="group_bet_100")
+    InlineKeyboardButton(text="10 🪙", callback_data="group_bet_10"),
+    InlineKeyboardButton(text="50 🪙", callback_data="group_bet_50"),
+    InlineKeyboardButton(text="100 🪙", callback_data="group_bet_100")
         ],
         [
-            InlineKeyboardButton(text="250 🪙", callback_data="group_bet_250"),
-            InlineKeyboardButton(text="500 🪙", callback_data="group_bet_500")
+    InlineKeyboardButton(text="250 🪙", callback_data="group_bet_250"),
+    InlineKeyboardButton(text="500 🪙", callback_data="group_bet_500"),
+    InlineKeyboardButton(text="1000 🪙", callback_data="group_bet_1000")
         ],
+        [
+    InlineKeyboardButton(text="5000 🪙", callback_data="group_bet_5000"),
+    InlineKeyboardButton(text="10000 🪙", callback_data="group_bet_10000"),
+    InlineKeyboardButton(text="20000 🪙", callback_data="group_bet_20000")
+        ]
+
         [
             InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu")
         ]
