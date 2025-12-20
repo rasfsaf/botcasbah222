@@ -1,9 +1,9 @@
 {
   "7941650878": {
-    "shekels": 15000,
-    "total_won": 3255,
+    "shekels": 35000,
+    "total_won": 23255,
     "total_lost": 4750,
-    "games_played": 32,
+    "games_played": 34,
     "username": "SaladinOff."
   },
   "6089028555": {
@@ -11,6 +11,13 @@
     "total_won": 0,
     "total_lost": 0,
     "games_played": 0,
+    "username": "Unknown"
+  },
+  "6573415066": {
+    "shekels": 8000,
+    "total_won": 50,
+    "total_lost": 250,
+    "games_played": 2,
     "username": "Unknown"
   }
 }

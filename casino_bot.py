@@ -1,5 +1,5 @@
 # Telegram Casino Bot - Рулетка и Black Jack
-# Версия: 3.1 - Казино Щедрый Еврей (ИСПРАВЛЕННЫЙ BLACK JACK 21)
+# Версия: 4 - Казино Щедрый Еврей (ИСПРАВЛЕННЫЙ BLACK JACK 21)
 # Валюта: Шекели
 
 import asyncio
@@ -429,7 +429,8 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
         bj_bet=bet,
         bj_deck=deck,
         bj_player_cards=player_cards,
-        bj_dealer_cards=dealer_cards
+        bj_dealer_cards=dealer_cards,
+        bj_player_id=user_id
     )
     await state.set_state(GameStates.blackjack_playing)
     
@@ -456,6 +457,11 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data == "bj_hit")
 async def blackjack_hit(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    owner_id = data.get("bj_player_id")
+    if owner_id is not None and owner_id != callback.from_user.id:
+        await callback.answer("❌ Это не ваша игра.", show_alert=True)
+        return
     """Взять ещё карту"""
     data = await state.get_data()
     deck = data['bj_deck']
@@ -527,6 +533,11 @@ async def blackjack_hit(callback: types.CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data == "bj_stand")
 async def blackjack_stand(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    owner_id = data.get("bj_player_id")
+    if owner_id is not None and owner_id != callback.from_user.id:
+        await callback.answer("❌ Это не ваша игра.", show_alert=True)
+        return
     """Остановиться и завершить игру"""
     data = await state.get_data()
     deck = data['bj_deck']
@@ -906,74 +917,95 @@ async def group_blackjack_start(callback: types.CallbackQuery, state: FSMContext
 Делайте ходы:
     """
     
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
         [
-            InlineKeyboardButton(text="🎴 Ещё карту", callback_data=f"group_bj_hit_{user_id}"),
-            InlineKeyboardButton(text="⏹️ Стоп", callback_data=f"group_bj_stand_{user_id}")
+            InlineKeyboardButton(text="🎴 Ещё карту", callback_data="group_bj_hit"),
+            InlineKeyboardButton(text="⏹️ Стоп", callback_data="group_bj_stand"),
         ],
         [
-            InlineKeyboardButton(text="✅ Начать игру дилера", callback_data="group_bj_dealer")
-        ]
-    ])
+            InlineKeyboardButton(text="✅ Начать игру дилера", callback_data="group_bj_dealer"),
+        ],
+    ]
+)
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer("✅ Вы присоединились!")
 
 @dp.callback_query(lambda c: c.data.startswith("group_bj_hit_"))
 async def group_blackjack_hit(callback: types.CallbackQuery):
-    """Взять карту в групповой игре"""
     user_id = int(callback.data.split("_")[3])
+
+    # защита от чужих нажатий
+    if user_id != callback.from_user.id:
+        await callback.answer("❌ Это кнопка другого игрока.", show_alert=True)
+        return
+
     chat_id = callback.message.chat.id
-    
+    """Взять карту в групповой игре"""
+    user_id = callback.from_user.id
+    chat_id = callback.message.chat.id
+
     if chat_id not in group_blackjack_games:
         await callback.answer("❌ Игра не начиналась", show_alert=True)
         return
-    
+
     game = group_blackjack_games[chat_id]
     if user_id not in game['players']:
         await callback.answer("❌ Вы не в этой игре", show_alert=True)
         return
-    
+
     player = game['players'][user_id]
-    
     if player['finished']:
-        await callback.answer("❌ Ваша игра закончена", show_alert=True)
+        await callback.answer("❌ Ваша игра уже завершена", show_alert=True)
         return
-    
+
     deck = game['deck']
     if not deck:
         deck = get_deck()
         game['deck'] = deck
-    
+
     player['cards'].append(deck.pop())
     value, _ = calculate_hand(player['cards'])
-    
+
     if value > 21:
         player['status'] = 'bust'
         player['finished'] = True
-        await callback.answer(f"💥 ПЕРЕБОР! {value} очков - ваша игра закончена")
+        await callback.answer(f"💥 ПЕРЕБОР! {value} очков - ваша игра закончена", show_alert=True)
     else:
         await callback.answer(f"🎴 Вы взяли карту. Сумма: {value}")
 
 @dp.callback_query(lambda c: c.data.startswith("group_bj_stand_"))
 async def group_blackjack_stand(callback: types.CallbackQuery):
-    """Остановиться в групповой игре"""
     user_id = int(callback.data.split("_")[3])
+
+    if user_id != callback.from_user.id:
+        await callback.answer("❌ Это кнопка другого игрока.", show_alert=True)
+        return
+
     chat_id = callback.message.chat.id
-    
+    """Остановиться в групповой игре"""
+    user_id = callback.from_user.id
+    chat_id = callback.message.chat.id
+
     if chat_id not in group_blackjack_games:
         await callback.answer("❌ Игра не начиналась", show_alert=True)
         return
-    
+
     game = group_blackjack_games[chat_id]
     if user_id not in game['players']:
         await callback.answer("❌ Вы не в этой игре", show_alert=True)
         return
-    
+
     player = game['players'][user_id]
+    if player['finished']:
+        await callback.answer("❌ Ваша игра уже завершена", show_alert=True)
+        return
+
     value, _ = calculate_hand(player['cards'])
     player['status'] = 'stand'
     player['finished'] = True
+
     await callback.answer(f"⏹️ Вы остановились с {value} очками")
 
 @dp.callback_query(lambda c: c.data == "group_bj_dealer")
