@@ -135,26 +135,26 @@ async def start_command(message: types.Message, state: FSMContext):
     await state.set_state(GameStates.main_menu)
     
     welcome_text = create_main_menu(user, player_name)
-    
-    keyboard = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(text="🎡 Рулетка", callback_data="game_roulette"),
-            InlineKeyboardButton(text="♠️ Black Jack", callback_data="game_blackjack"),
-        ],
-        [
-            InlineKeyboardButton(text="🎡 Рулетка в группе", callback_data="group_roulette_menu"),
-            InlineKeyboardButton(text="♠️ Black Jack в группе", callback_data="group_blackjack_menu"),
-        ],
-        [
-            InlineKeyboardButton(text="📊 Статистика", callback_data="stats"),
-            InlineKeyboardButton(text="💰 Баланс", callback_data="balance"),
-        ],
-    ]
-)
 
-    
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="🎡 Рулетка", callback_data="game_roulette"),
+                InlineKeyboardButton(text="♠️ Black Jack", callback_data="game_blackjack"),
+            ],
+            [
+                InlineKeyboardButton(text="🎡 Рулетка в группе", callback_data="group_roulette_menu"),
+                InlineKeyboardButton(text="♠️ Black Jack в группе", callback_data="group_blackjack_menu"),
+            ],
+            [
+                InlineKeyboardButton(text="📊 Статистика", callback_data="stats"),
+                InlineKeyboardButton(text="💰 Баланс", callback_data="balance"),
+            ],
+        ]
+    )
+
     await message.answer(welcome_text, reply_markup=keyboard, parse_mode="Markdown")
+
 
 # =============== РУЛЕТКА (личная) ===============
 @dp.callback_query(lambda c: c.data == "game_roulette")
