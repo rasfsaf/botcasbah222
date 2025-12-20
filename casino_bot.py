@@ -1,6 +1,6 @@
 # Telegram Casino Bot - Рулетка и Black Jack
-# Версия: 3.1 - Казино Щедрый Еврей (ИСПРАВЛЕННЫЙ BLACK JACK 21)
-# Валюта: Шекели
+# Версия: 3.1 - Казино Бабахи (ИСПРАВЛЕННЫЙ BLACK JACK 21)
+# Валюта: Хэш-Фугасы
 
 import asyncio
 import json
@@ -37,7 +37,7 @@ def declension(num: int, word1: str, word2: str, word5: str) -> str:
 def format_currency(num: int) -> str:
     """Форматировать число с правильным названием валюты"""
     word = declension(num, "Хэш-Фугас", "Хэш-Фугаса", "Хэш-Фугас")
-    return f"**{num}** 💰 {word}"
+    return f"**{num}** 🪙 {word}"
 
 # =============== СОСТОЯНИЯ ===============
 class GameStates(StatesGroup):
@@ -84,7 +84,7 @@ def get_user(user_id: int) -> dict:
     user_id_str = str(user_id)
     if user_id_str not in users_data:
         users_data[user_id_str] = {
-            'shekels': 1000,
+            'hash_fugasy': 1000,
             'total_won': 0,
             'total_lost': 0,
             'games_played': 0,
@@ -110,7 +110,7 @@ def create_main_menu(user: dict, player_name: str) -> str:
 
 Привет, {player_name}! 👋
 
-Ваш баланс: {format_currency(user['shekels'])}
+Ваш баланс: {format_currency(user['hash_fugasy'])}
 
 **Доступные игры:**
 1️⃣ **Рулетка** - классическая игра везения
@@ -135,26 +135,25 @@ async def start_command(message: types.Message, state: FSMContext):
     await state.set_state(GameStates.main_menu)
     
     welcome_text = create_main_menu(user, player_name)
-
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text="🎡 Рулетка", callback_data="game_roulette"),
-                InlineKeyboardButton(text="♠️ Black Jack", callback_data="game_blackjack"),
-            ],
-            [
-                InlineKeyboardButton(text="🎡 Рулетка в группе", callback_data="group_roulette_menu"),
-                InlineKeyboardButton(text="♠️ Black Jack в группе", callback_data="group_blackjack_menu"),
-            ],
-            [
-                InlineKeyboardButton(text="📊 Статистика", callback_data="stats"),
-                InlineKeyboardButton(text="💰 Баланс", callback_data="balance"),
-            ],
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🎡 Рулетка", callback_data="game_roulette"),
+            InlineKeyboardButton(text="♠️ Black Jack", callback_data="game_blackjack")
+        ],
+        [
+            InlineKeyboardButton(text="🎡 Рулетка в группе", callback_data="group_roulette_menu")
+        ],
+        [
+            InlineKeyboardButton(text="♠️ Black Jack в группе", callback_data="group_blackjack_menu")
+        ],
+        [
+            InlineKeyboardButton(text="📊 Статистика", callback_data="stats"),
+            InlineKeyboardButton(text="💰 Баланс", callback_data="balance")
         ]
-    )
-
+    ])
+    
     await message.answer(welcome_text, reply_markup=keyboard, parse_mode="Markdown")
-
 
 # =============== РУЛЕТКА (личная) ===============
 @dp.callback_query(lambda c: c.data == "game_roulette")
@@ -166,23 +165,23 @@ async def roulette_menu(callback: types.CallbackQuery, state: FSMContext):
 🎡 **РУЛЕТКА** 🎡
 
 **Правила:**
-- Выберите ставку (от 10 до 10000 Шекелей)
+- Выберите ставку (от 10 до 500 Хэш-Фугас)
 - Угадайте: Красное или Чёрное
 - Вероятность выигрыша: 48.6%
-- При выигрыше удвоите ставку (2x)
+- При выигрыше удвоите ставку
 
 Сколько ставите?
     """
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="10 💰", callback_data="roulette_bet_10"),
-            InlineKeyboardButton(text="50 💰", callback_data="roulette_bet_50"),
-            InlineKeyboardButton(text="100 💰", callback_data="roulette_bet_100")
+            InlineKeyboardButton(text="10 🪙", callback_data="roulette_bet_10"),
+            InlineKeyboardButton(text="50 🪙", callback_data="roulette_bet_50"),
+            InlineKeyboardButton(text="100 🪙", callback_data="roulette_bet_100")
         ],
         [
-            InlineKeyboardButton(text="250 💰", callback_data="roulette_bet_250"),
-            InlineKeyboardButton(text="500 💰", callback_data="roulette_bet_500")
+            InlineKeyboardButton(text="250 🪙", callback_data="roulette_bet_250"),
+            InlineKeyboardButton(text="500 🪙", callback_data="roulette_bet_500")
         ],
         [
             InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu")
@@ -199,8 +198,8 @@ async def roulette_choose_color(callback: types.CallbackQuery, state: FSMContext
     user_id = callback.from_user.id
     user = get_user(user_id)
     
-    if user['shekels'] < bet:
-        await callback.answer(f"❌ Недостаточно! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}", show_alert=True)
+    if user['hash_fugasy'] < bet:
+        await callback.answer(f"❌ Недостаточно! У вас {format_currency(user['hash_fugasy'])}, нужно {format_currency(bet)}", show_alert=True)
         return
     
     await state.update_data(roulette_bet=bet)
@@ -242,28 +241,28 @@ async def roulette_spin(callback: types.CallbackQuery, state: FSMContext):
     is_win = result_color == chosen_color
     
     if is_win:
-        user['shekels'] += bet
+        user['hash_fugasy'] += bet
         user['total_won'] += bet
         result_text = f"""
 🎉 **ВЫИГРЫШ!** 🎉
 
 Результат рулетки: **{result_color}** ✅
 Ваш выбор: **{chosen_color}** ✅
-Выигрыш: **+{bet}** 💰
+Выигрыш: **+{bet}** 🪙
 
-Новый баланс: {format_currency(user['shekels'])}
+Новый баланс: {format_currency(user['hash_fugasy'])}
         """
     else:
-        user['shekels'] -= bet
+        user['hash_fugasy'] -= bet
         user['total_lost'] += bet
         result_text = f"""
 😢 **ПРОИГРЫШ** 😢
 
 Результат рулетки: **{result_color}** ❌
 Ваш выбор: **{chosen_color}** ❌
-Потеря: **-{bet}** 💰
+Потеря: **-{bet}** 🪙
 
-Новый баланс: {format_currency(user['shekels'])}
+Новый баланс: {format_currency(user['hash_fugasy'])}
         """
     
     user['games_played'] += 1
@@ -328,20 +327,20 @@ async def blackjack_menu(callback: types.CallbackQuery, state: FSMContext):
 - Дилер играет против вас
 - Если перебрали (>21) - ПЕРЕБОР, игра заканчивается
 - **BLACK JACK!** (21 с первых двух карт) = **5x выигрыш от ставки!** 🎉
-- При обычной победе - получаете 2x от ставки
+- При обычном выигрыше - получаете 1.5x от ставки
 
 Сколько ставите?
     """
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="10 💰", callback_data="bj_bet_10"),
-            InlineKeyboardButton(text="50 💰", callback_data="bj_bet_50"),
-            InlineKeyboardButton(text="100 💰", callback_data="bj_bet_100")
+            InlineKeyboardButton(text="10 🪙", callback_data="bj_bet_10"),
+            InlineKeyboardButton(text="50 🪙", callback_data="bj_bet_50"),
+            InlineKeyboardButton(text="100 🪙", callback_data="bj_bet_100")
         ],
         [
-            InlineKeyboardButton(text="250 💰", callback_data="bj_bet_250"),
-            InlineKeyboardButton(text="500 💰", callback_data="bj_bet_500")
+            InlineKeyboardButton(text="250 🪙", callback_data="bj_bet_250"),
+            InlineKeyboardButton(text="500 🪙", callback_data="bj_bet_500")
         ],
         [
             InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu")
@@ -358,8 +357,8 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
     user = get_user(user_id)
     
-    if user['shekels'] < bet:
-        await callback.answer(f"❌ Недостаточно! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}", show_alert=True)
+    if user['hash_fugasy'] < bet:
+        await callback.answer(f"❌ Недостаточно! У вас {format_currency(user['hash_fugasy'])}, нужно {format_currency(bet)}", show_alert=True)
         return
     
     deck = get_deck()
@@ -374,7 +373,7 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
         # Проверяем BLACK JACK у дилера
         if is_blackjack(dealer_cards):
             # Оба имеют BLACK JACK - ничья, возвращаем ставку
-            user['shekels'] += bet
+            user['hash_fugasy'] += bet
             user['total_won'] += bet
             winnings = bet
             result_text = f"""
@@ -383,13 +382,13 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
 **Ваши карты:** {' '.join(player_cards)} = **21** 🎯
 **Карты дилера:** {' '.join(dealer_cards)} = **21** 🎯
 
-Ставка возвращена: **+{bet}** 💰
-Новый баланс: {format_currency(user['shekels'])}
+Ставка возвращена: **+{bet}** 🪙
+Новый баланс: {format_currency(user['hash_fugasy'])}
             """
         else:
             # Только игрок имеет BLACK JACK - выигрыш 5x
             winnings = bet * 5
-            user['shekels'] += winnings
+            user['hash_fugasy'] += winnings
             user['total_won'] += winnings
             result_text = f"""
 🌟 **BLACK JACK!!!** 🌟
@@ -398,9 +397,9 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
 **Карты дилера:** {' '.join(dealer_cards)} = **{dealer_value}**
 
 ✨ ВЫИГРЫШ В 5 РАЗ! ✨
-Выигрыш: **+{winnings}** 💰
+Выигрыш: **+{winnings}** 🪙
 
-Новый баланс: {format_currency(user['shekels'])}
+Новый баланс: {format_currency(user['hash_fugasy'])}
             """
         
         user['games_played'] += 1
@@ -466,7 +465,7 @@ async def blackjack_hit(callback: types.CallbackQuery, state: FSMContext):
     if player_value > 21:
         user_id = callback.from_user.id
         user = get_user(user_id)
-        user['shekels'] -= bet
+        user['hash_fugasy'] -= bet
         user['total_lost'] += bet
         user['games_played'] += 1
         save_user(user_id, user)
@@ -479,8 +478,8 @@ async def blackjack_hit(callback: types.CallbackQuery, state: FSMContext):
 
 Игра закончена! Вы перебрали.
 
-Проигрыш: **-{bet}** 💰
-Новый баланс: {format_currency(user['shekels'])}
+Проигрыш: **-{bet}** 🪙
+Новый баланс: {format_currency(user['hash_fugasy'])}
         """
         
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -545,7 +544,7 @@ async def blackjack_stand(callback: types.CallbackQuery, state: FSMContext):
     # Проверяем BLACK JACK у дилера
     if is_blackjack(dealer_cards):
         # Дилер имеет BLACK JACK - просто забирает ставку
-        user['shekels'] -= bet
+        user['hash_fugasy'] -= bet
         user['total_lost'] += bet
         result = f"""
 🌟 **ДИЛЕР ИМЕЕТ BLACK JACK!** 🌟
@@ -555,13 +554,13 @@ async def blackjack_stand(callback: types.CallbackQuery, state: FSMContext):
 
 Дилер выигрывает! Ставка забрана.
 
-Проигрыш: **-{bet}** 💰
-Новый баланс: {format_currency(user['shekels'])}
+Проигрыш: **-{bet}** 🪙
+Новый баланс: {format_currency(user['hash_fugasy'])}
         """
     elif dealer_value > 21:
         # Дилер перебрал
-        winnings = int(bet * 2)
-        user['shekels'] += winnings
+        winnings = int(bet * 1.5)
+        user['hash_fugasy'] += winnings
         user['total_won'] += winnings
         result = f"""
 🎉 **ВЫИГРЫШ!** 🎉
@@ -570,13 +569,13 @@ async def blackjack_stand(callback: types.CallbackQuery, state: FSMContext):
 **Карты дилера:** {' '.join(dealer_cards)} = **{dealer_value}** 💥
 
 Дилер перебрал!
-Выигрыш: **+{winnings}** 💰
-Новый баланс: {format_currency(user['shekels'])}
+Выигрыш: **+{winnings}** 🪙
+Новый баланс: {format_currency(user['hash_fugasy'])}
         """
     elif player_value > dealer_value:
         # Игрок выигрывает
-        winnings = int(bet * 2)
-        user['shekels'] += winnings
+        winnings = int(bet * 1.5)
+        user['hash_fugasy'] += winnings
         user['total_won'] += winnings
         result = f"""
 🎉 **ВЫИГРЫШ!** 🎉
@@ -584,24 +583,24 @@ async def blackjack_stand(callback: types.CallbackQuery, state: FSMContext):
 **Ваши карты:** {' '.join(player_cards)} = **{player_value}** ✅
 **Карты дилера:** {' '.join(dealer_cards)} = **{dealer_value}**
 
-Выигрыш: **+{winnings}** 💰
-Новый баланс: {format_currency(user['shekels'])}
+Выигрыш: **+{winnings}** 🪙
+Новый баланс: {format_currency(user['hash_fugasy'])}
         """
     elif player_value == dealer_value:
         # Ничья
-        user['shekels'] += bet
+        user['hash_fugasy'] += bet
         result = f"""
 🤝 **НИЧЬЯ** 🤝
 
 **Ваши карты:** {' '.join(player_cards)} = **{player_value}**
 **Карты дилера:** {' '.join(dealer_cards)} = **{dealer_value}**
 
-Ставка возвращена: **+{bet}** 💰
-Баланс: {format_currency(user['shekels'])}
+Ставка возвращена: **+{bet}** 🪙
+Баланс: {format_currency(user['hash_fugasy'])}
         """
     else:
         # Проигрыш
-        user['shekels'] -= bet
+        user['hash_fugasy'] -= bet
         user['total_lost'] += bet
         result = f"""
 😢 **ПРОИГРЫШ** 😢
@@ -609,8 +608,8 @@ async def blackjack_stand(callback: types.CallbackQuery, state: FSMContext):
 **Ваши карты:** {' '.join(player_cards)} = **{player_value}**
 **Карты дилера:** {' '.join(dealer_cards)} = **{dealer_value}** ✅
 
-Проигрыш: **-{bet}** 💰
-Новый баланс: {format_currency(user['shekels'])}
+Проигрыш: **-{bet}** 🪙
+Новый баланс: {format_currency(user['hash_fugasy'])}
         """
     
     user['games_played'] += 1
@@ -645,13 +644,13 @@ async def group_roulette_menu(callback: types.CallbackQuery, state: FSMContext):
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="10 💰", callback_data="group_bet_10"),
-            InlineKeyboardButton(text="50 💰", callback_data="group_bet_50"),
-            InlineKeyboardButton(text="100 💰", callback_data="group_bet_100")
+            InlineKeyboardButton(text="10 🪙", callback_data="group_bet_10"),
+            InlineKeyboardButton(text="50 🪙", callback_data="group_bet_50"),
+            InlineKeyboardButton(text="100 🪙", callback_data="group_bet_100")
         ],
         [
-            InlineKeyboardButton(text="250 💰", callback_data="group_bet_250"),
-            InlineKeyboardButton(text="500 💰", callback_data="group_bet_500")
+            InlineKeyboardButton(text="250 🪙", callback_data="group_bet_250"),
+            InlineKeyboardButton(text="500 🪙", callback_data="group_bet_500")
         ],
         [
             InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu")
@@ -669,8 +668,8 @@ async def group_roulette_start(callback: types.CallbackQuery, state: FSMContext)
     player_name = get_user_name(callback.from_user)
     user = get_user(user_id)
     
-    if user['shekels'] < bet:
-        await callback.answer(f"❌ Недостаточно! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}", show_alert=True)
+    if user['hash_fugasy'] < bet:
+        await callback.answer(f"❌ Недостаточно! У вас {format_currency(user['hash_fugasy'])}, нужно {format_currency(bet)}", show_alert=True)
         return
     
     chat_id = callback.message.chat.id
@@ -764,11 +763,11 @@ async def group_roulette_spin(callback: types.CallbackQuery):
         is_win = result_color == player_color
         
         if is_win:
-            user['shekels'] += player['bet']
+            user['hash_fugasy'] += player['bet']
             user['total_won'] += player['bet']
             results.append(f"✅ {player['name']} выиграл {format_currency(player['bet'])}")
         else:
-            user['shekels'] -= player['bet']
+            user['hash_fugasy'] -= player['bet']
             user['total_lost'] += player['bet']
             results.append(f"❌ {player['name']} проиграл {format_currency(player['bet'])}")
         
@@ -818,13 +817,13 @@ async def group_blackjack_menu(callback: types.CallbackQuery, state: FSMContext)
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="10 💰", callback_data="group_bj_bet_10"),
-            InlineKeyboardButton(text="50 💰", callback_data="group_bj_bet_50"),
-            InlineKeyboardButton(text="100 💰", callback_data="group_bj_bet_100")
+            InlineKeyboardButton(text="10 🪙", callback_data="group_bj_bet_10"),
+            InlineKeyboardButton(text="50 🪙", callback_data="group_bj_bet_50"),
+            InlineKeyboardButton(text="100 🪙", callback_data="group_bj_bet_100")
         ],
         [
-            InlineKeyboardButton(text="250 💰", callback_data="group_bj_bet_250"),
-            InlineKeyboardButton(text="500 💰", callback_data="group_bj_bet_500")
+            InlineKeyboardButton(text="250 🪙", callback_data="group_bj_bet_250"),
+            InlineKeyboardButton(text="500 🪙", callback_data="group_bj_bet_500")
         ],
         [
             InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu")
@@ -842,8 +841,8 @@ async def group_blackjack_start(callback: types.CallbackQuery, state: FSMContext
     player_name = get_user_name(callback.from_user)
     user = get_user(user_id)
     
-    if user['shekels'] < bet:
-        await callback.answer(f"❌ Недостаточно! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}", show_alert=True)
+    if user['hash_fugasy'] < bet:
+        await callback.answer(f"❌ Недостаточно! У вас {format_currency(user['hash_fugasy'])}, нужно {format_currency(bet)}", show_alert=True)
         return
     
     chat_id = callback.message.chat.id
@@ -990,34 +989,34 @@ async def group_blackjack_dealer(callback: types.CallbackQuery):
         player_has_blackjack = is_blackjack(player['cards'])
         
         if player['status'] == 'bust':
-            user['shekels'] -= player['bet']
+            user['hash_fugasy'] -= player['bet']
             user['total_lost'] += player['bet']
             results.append(f"💥 {player['name']} - ПЕРЕБОР ({player_value})")
         elif player_has_blackjack and dealer_has_blackjack:
-            user['shekels'] += player['bet']
+            user['hash_fugasy'] += player['bet']
             results.append(f"🤝 {player['name']} - BLACK JACK НИЧЬЯ!")
         elif player_has_blackjack:
             winnings = player['bet'] * 5
-            user['shekels'] += winnings
+            user['hash_fugasy'] += winnings
             user['total_won'] += winnings
             results.append(f"🌟 {player['name']} - BLACK JACK! +{winnings}!")
         elif dealer_has_blackjack:
-            user['shekels'] -= player['bet']
+            user['hash_fugasy'] -= player['bet']
             user['total_lost'] += player['bet']
             results.append(f"🌟 {player['name']} - Дилер BLACK JACK, -{player['bet']}")
         elif dealer_value > 21:
-            user['shekels'] += int(player['bet'] * 1.5)
+            user['hash_fugasy'] += int(player['bet'] * 1.5)
             user['total_won'] += int(player['bet'] * 1.5)
             results.append(f"✅ {player['name']} - ВЫИГРЫШ! Дилер перебрал")
         elif player_value > dealer_value:
-            user['shekels'] += int(player['bet'] * 1.5)
+            user['hash_fugasy'] += int(player['bet'] * 1.5)
             user['total_won'] += int(player['bet'] * 1.5)
             results.append(f"✅ {player['name']} - ВЫИГРЫШ! ({player_value} vs {dealer_value})")
         elif player_value == dealer_value:
-            user['shekels'] += player['bet']
+            user['hash_fugasy'] += player['bet']
             results.append(f"🤝 {player['name']} - НИЧЬЯ ({player_value})")
         else:
-            user['shekels'] -= player['bet']
+            user['hash_fugasy'] -= player['bet']
             user['total_lost'] += player['bet']
             results.append(f"❌ {player['name']} - ПРОИГРЫШ ({player_value} vs {dealer_value})")
         
@@ -1061,11 +1060,11 @@ async def show_stats(callback: types.CallbackQuery):
     text = f"""
 📊 **ВАША СТАТИСТИКА** 📊
 
-**Баланс:** {format_currency(user['shekels'])}
+**Баланс:** {format_currency(user['hash_fugasy'])}
 
 **Всего игр:** {user['games_played']}
-**Выигрыш:** +{user['total_won']} 💰
-**Проигрыш:** -{user['total_lost']} 💰
+**Выигрыш:** +{user['total_won']} 🪙
+**Проигрыш:** -{user['total_lost']} 🪙
 **Прибыль/Убыток:** {profit_emoji} {profit:+d} {profit_word}
     """
     
@@ -1085,7 +1084,7 @@ async def show_balance(callback: types.CallbackQuery):
     text = f"""
 💰 **ВАШ БАЛАНС** 💰
 
-{format_currency(user['shekels'])}
+{format_currency(user['hash_fugasy'])}
 
 Начинайте игру и выигрывайте! 🎰
     """
@@ -1132,7 +1131,7 @@ async def back_to_menu(callback: types.CallbackQuery, state: FSMContext):
 # =============== ЗАПУСК БОТА ===============
 async def main():
     """Запуск бота"""
-    print("🎰 КАЗИНО ЩЕДРЫЙ ЕВРЕЙ запущено! (Версия 3.1 - ИСПРАВЛЕННЫЙ BLACK JACK 21 + ГРУППОВЫЕ ИГРЫ)")
+    print("🎰 Казино БАБАХИ запущено! (Версия 3.1 - ИСПРАВЛЕННЫЙ BLACK JACK 21 + ГРУППОВЫЕ ИГРЫ)")
     load_users_data()
     await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
