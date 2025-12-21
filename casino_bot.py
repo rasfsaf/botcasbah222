@@ -1097,9 +1097,10 @@ async def group_blackjack_dealer(callback: types.CallbackQuery):
             results.append(f"❌ {player['name']} - ПРОИГРЫШ ({player_value} vs {dealer_value})")
         
         user['games_played'] += 1
-        save_user(user_id, user)
+        users_data[str(user_id)] = user
     
     results_text = "\n".join(results)
+    save_users_data()
     
     text = f"""
 🎰 **РЕЗУЛЬТАТЫ BLACK JACK** 🎰
@@ -1116,7 +1117,7 @@ async def group_blackjack_dealer(callback: types.CallbackQuery):
     ])
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
-    
+    await asyncio.sleep(0.1)
     if chat_id in group_blackjack_games:
         del group_blackjack_games[chat_id]
     
