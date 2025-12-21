@@ -196,6 +196,7 @@ async def roulette_menu(callback: types.CallbackQuery, state: FSMContext):
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
+    await asyncio.sleep(0.1)
 
 @dp.callback_query(lambda c: c.data.startswith("roulette_bet_"))
 async def roulette_choose_color(callback: types.CallbackQuery, state: FSMContext):
@@ -232,6 +233,7 @@ async def roulette_choose_color(callback: types.CallbackQuery, state: FSMContext
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
+    await asyncio.sleep(0.1)
 
 @dp.callback_query(lambda c: c.data in ["roulette_red", "roulette_black"])
 async def roulette_spin(callback: types.CallbackQuery, state: FSMContext):
@@ -283,6 +285,7 @@ async def roulette_spin(callback: types.CallbackQuery, state: FSMContext):
     
     await callback.message.edit_text(result_text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
+    await asyncio.sleep(0.1)
 
 # =============== BLACK JACK (личная) ===============
 def calculate_hand(cards: List[str]) -> tuple:
@@ -363,6 +366,7 @@ async def blackjack_menu(callback: types.CallbackQuery, state: FSMContext):
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
+    await asyncio.sleep(0.1)
 
 @dp.callback_query(lambda c: c.data.startswith("bj_bet_"))
 async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
@@ -428,6 +432,7 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
         
         await callback.message.edit_text(result_text, reply_markup=keyboard, parse_mode="Markdown")
         await callback.answer()
+        await asyncio.sleep(0.1)
         return
     
     # Нет BLACK JACK - игра продолжается
@@ -460,6 +465,7 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
+    await asyncio.sleep(0.1)
 
 @dp.callback_query(lambda c: c.data == "bj_hit")
 async def blackjack_hit(callback: types.CallbackQuery, state: FSMContext):
@@ -512,6 +518,7 @@ async def blackjack_hit(callback: types.CallbackQuery, state: FSMContext):
         await state.clear()
         await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
         await callback.answer()
+        await asyncio.sleep(0.1)
         return
     
     await state.update_data(bj_deck=deck, bj_player_cards=player_cards)
@@ -536,6 +543,7 @@ async def blackjack_hit(callback: types.CallbackQuery, state: FSMContext):
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
+    await asyncio.sleep(0.1)
 
 @dp.callback_query(lambda c: c.data == "bj_stand")
 async def blackjack_stand(callback: types.CallbackQuery, state: FSMContext):
@@ -650,6 +658,7 @@ async def blackjack_stand(callback: types.CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.message.edit_text(result, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
+    await asyncio.sleep(0.1)
 
 # =============== ГРУППОВАЯ РУЛЕТКА ===============
 @dp.callback_query(lambda c: c.data == "group_roulette_menu")
@@ -691,6 +700,7 @@ async def group_roulette_menu(callback: types.CallbackQuery, state: FSMContext):
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
+    await asyncio.sleep(0.1)
 
 @dp.callback_query(lambda c: c.data.startswith("group_bet_"))
 async def group_roulette_start(callback: types.CallbackQuery, state: FSMContext):
@@ -875,6 +885,7 @@ async def group_blackjack_menu(callback: types.CallbackQuery, state: FSMContext)
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
+    await asyncio.sleep(0.1)
 
 @dp.callback_query(lambda c: c.data.startswith("group_bj_bet_"))
 async def group_blackjack_start(callback: types.CallbackQuery, state: FSMContext):
@@ -944,6 +955,7 @@ async def group_blackjack_start(callback: types.CallbackQuery, state: FSMContext
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer("✅ Вы присоединились!")
+    await asyncio.sleep(0.1)
 
 @dp.callback_query(lambda c: c.data.startswith("group_bj_hit_"))
 async def group_blackjack_hit(callback: types.CallbackQuery):
@@ -1138,6 +1150,7 @@ async def show_stats(callback: types.CallbackQuery):
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
+    await asyncio.sleep(0.1)
 
 @dp.callback_query(lambda c: c.data == "balance")
 async def show_balance(callback: types.CallbackQuery):
@@ -1159,6 +1172,7 @@ async def show_balance(callback: types.CallbackQuery):
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
+    await asyncio.sleep(0.1)
 
 # =============== НАВИГАЦИЯ ===============
 @dp.callback_query(lambda c: c.data == "back_to_menu")
@@ -1191,6 +1205,7 @@ async def back_to_menu(callback: types.CallbackQuery, state: FSMContext):
     
     await callback.message.edit_text(welcome_text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
+    await asyncio.sleep(0.1)
 
 # =============== ЗАПУСК БОТА ===============
 async def main():
