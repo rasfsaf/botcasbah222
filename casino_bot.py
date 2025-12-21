@@ -944,14 +944,19 @@ async def group_blackjack_start(callback: types.CallbackQuery, state: FSMContext
     keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
         [
-            InlineKeyboardButton(text="🎴 Ещё карту", callback_data="group_bj_hit"),
-            InlineKeyboardButton(text="⏹️ Стоп", callback_data="group_bj_stand"),
+            InlineKeyboardButton(
+                text="🎴 Ещё карту",
+                callback_data=f"group_bj_hit_{user_id}"
+            ),
+            InlineKeyboardButton(
+                text="⏹️ Стоп",
+                callback_data=f"group_bj_stand_{user_id}"
+            ),
         ],
-        [
-            InlineKeyboardButton(text="✅ Начать игру дилера", callback_data="group_bj_dealer"),
-        ],
-    ]
+        [InlineKeyboardButton(text="✅ Начать игру дилера", callback_data="group_bj_dealer")],
+    ],
 )
+
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer("✅ Вы присоединились!")
