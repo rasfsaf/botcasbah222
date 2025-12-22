@@ -199,7 +199,6 @@ async def roulette_menu(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
 
-
 @dp.callback_query(lambda c: c.data.startswith("roulette_bet_"))
 async def roulette_choose_color(callback: types.CallbackQuery, state: FSMContext):
     """Выбор цвета в рулетке"""
@@ -236,7 +235,6 @@ async def roulette_choose_color(callback: types.CallbackQuery, state: FSMContext
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
     
-
 @dp.callback_query(lambda c: c.data in ["roulette_red", "roulette_black"])
 async def roulette_spin(callback: types.CallbackQuery, state: FSMContext):
     """Вращение рулетки"""
@@ -288,7 +286,6 @@ async def roulette_spin(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.edit_text(result_text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
     
-
 # =============== BLACK JACK (личная) ===============
 def calculate_hand(cards: List[str]) -> tuple:
     """Рассчитать значение руки"""
@@ -368,8 +365,6 @@ async def blackjack_menu(callback: types.CallbackQuery, state: FSMContext):
 
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-
-    
 
 @dp.callback_query(lambda c: c.data.startswith("bj_bet_"))
 async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
@@ -546,7 +541,6 @@ async def blackjack_hit(callback: types.CallbackQuery, state: FSMContext):
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    
 
 @dp.callback_query(lambda c: c.data == "bj_stand")
 async def blackjack_stand(callback: types.CallbackQuery, state: FSMContext):
@@ -661,7 +655,6 @@ async def blackjack_stand(callback: types.CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.message.edit_text(result, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    
 
 # =============== ГРУППОВАЯ РУЛЕТКА ===============
 @dp.callback_query(lambda c: c.data == "group_roulette_menu")
@@ -704,8 +697,6 @@ async def group_roulette_menu(callback: types.CallbackQuery, state: FSMContext):
 
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-
-    
 
 @dp.callback_query(lambda c: c.data.startswith("group_bet_"))
 async def group_roulette_start(callback: types.CallbackQuery, state: FSMContext):
@@ -890,8 +881,6 @@ async def group_blackjack_menu(callback: types.CallbackQuery, state: FSMContext)
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
 
-    
-
 @dp.callback_query(lambda c: c.data.startswith("group_bj_bet_"))
 async def group_blackjack_start(callback: types.CallbackQuery, state: FSMContext):
     """Присоединение к групповой игре Black Jack"""
@@ -966,7 +955,6 @@ async def group_blackjack_start(callback: types.CallbackQuery, state: FSMContext
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer("✅ Вы присоединились!")
     
-
 @dp.callback_query(lambda c: c.data.startswith("group_bj_hit_"))
 async def group_blackjack_hit(callback: types.CallbackQuery):
     user_id = int(callback.data.split("_")[3])
@@ -1132,7 +1120,6 @@ async def group_blackjack_dealer(callback: types.CallbackQuery):
         del group_blackjack_games[chat_id]
     
     await callback.answer("🎉 Игра завершена!")
-
 # =============== СТАТИСТИКА ===============
 @dp.callback_query(lambda c: c.data == "stats")
 async def show_stats(callback: types.CallbackQuery):
@@ -1161,8 +1148,6 @@ async def show_stats(callback: types.CallbackQuery):
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    
-
 @dp.callback_query(lambda c: c.data == "balance")
 async def show_balance(callback: types.CallbackQuery):
     """Показать баланс"""
@@ -1183,8 +1168,6 @@ async def show_balance(callback: types.CallbackQuery):
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    
-
 # =============== НАВИГАЦИЯ ===============
 @dp.callback_query(lambda c: c.data == "back_to_menu")
 async def back_to_menu(callback: types.CallbackQuery, state: FSMContext):
@@ -1216,9 +1199,6 @@ async def back_to_menu(callback: types.CallbackQuery, state: FSMContext):
 
     await callback.message.edit_text(welcome_text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-
-    
-
 # =============== ЗАПУСК БОТА ===============
 async def main():
     """Запуск бота"""
