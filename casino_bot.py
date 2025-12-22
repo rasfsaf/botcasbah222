@@ -131,28 +131,28 @@ async def start_command(message: types.Message, state: FSMContext):
     player_name = get_user_name(message.from_user)
     user['username'] = player_name
     save_user(user_id, user)
-    
+
     await state.set_state(GameStates.main_menu)
-    
+
     welcome_text = create_main_menu(user, player_name)
-    
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="🎡 Рулетка", callback_data="game_roulette"),
-            InlineKeyboardButton(text="♠️ Black Jack", callback_data="game_blackjack")
-        ],
-        [
-            InlineKeyboardButton(text="🎡 Рулетка в группе", callback_data="group_roulette_menu")
-        ],
-        [
-            InlineKeyboardButton(text="♠️ Black Jack в группе", callback_data="group_blackjack_menu")
-        ],
-        [
-            InlineKeyboardButton(text="📊 Статистика", callback_data="stats"),
-            InlineKeyboardButton(text="💰 Баланс", callback_data="balance")
+
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="🎡 Рулетка", callback_data="game_roulette"),
+                InlineKeyboardButton(text="♠️ Black Jack", callback_data="game_blackjack"),
+            ],
+            [
+                InlineKeyboardButton(text="🎡 Рулетка в группе", callback_data="group_roulette_menu"),
+                InlineKeyboardButton(text="♠️ Black Jack в группе", callback_data="group_blackjack_menu"),
+            ],
+            [
+                InlineKeyboardButton(text="📊 Статистика", callback_data="stats"),
+                InlineKeyboardButton(text="💰 Баланс", callback_data="balance"),
+            ],
         ]
-    ])
-    
+    )
+
     await message.answer(welcome_text, reply_markup=keyboard, parse_mode="Markdown")
 
 # =============== РУЛЕТКА (личная) ===============
@@ -160,7 +160,7 @@ async def start_command(message: types.Message, state: FSMContext):
 async def roulette_menu(callback: types.CallbackQuery, state: FSMContext):
     """Меню рулетки"""
     await state.set_state(GameStates.roulette_betting)
-    
+
     text = """
 🎡 **РУЛЕТКА** 🎡
 
@@ -171,32 +171,34 @@ async def roulette_menu(callback: types.CallbackQuery, state: FSMContext):
 - При выигрыше удвоите ставку
 
 Сколько ставите?
-    """
-    
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-    InlineKeyboardButton(text="10 🪙", callback_data="roulette_bet_10"),
-    InlineKeyboardButton(text="50 🪙", callback_data="roulette_bet_50"),
-    InlineKeyboardButton(text="100 🪙", callback_data="roulette_bet_100")
-],
-[
-    InlineKeyboardButton(text="250 🪙", callback_data="roulette_bet_250"),
-    InlineKeyboardButton(text="500 🪙", callback_data="roulette_bet_500"),
-    InlineKeyboardButton(text="1000 🪙", callback_data="roulette_bet_1000")
-],
-[
-    InlineKeyboardButton(text="5000 🪙", callback_data="roulette_bet_5000"),
-    InlineKeyboardButton(text="10000 🪙", callback_data="roulette_bet_10000"),
-    InlineKeyboardButton(text="20000 🪙", callback_data="roulette_bet_20000")
-]
-        [
-            InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu")
+"""
+
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="10 🪙", callback_data="roulette_bet_10"),
+                InlineKeyboardButton(text="50 🪙", callback_data="roulette_bet_50"),
+                InlineKeyboardButton(text="100 🪙", callback_data="roulette_bet_100"),
+            ],
+            [
+                InlineKeyboardButton(text="250 🪙", callback_data="roulette_bet_250"),
+                InlineKeyboardButton(text="500 🪙", callback_data="roulette_bet_500"),
+                InlineKeyboardButton(text="1000 🪙", callback_data="roulette_bet_1000"),
+            ],
+            [
+                InlineKeyboardButton(text="5000 🪙", callback_data="roulette_bet_5000"),
+                InlineKeyboardButton(text="10000 🪙", callback_data="roulette_bet_10000"),
+                InlineKeyboardButton(text="20000 🪙", callback_data="roulette_bet_20000"),
+            ],
+            [
+                InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
+            ],
         ]
-    ])
-    
+    )
+
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    await asyncio.sleep(0.1)
+
 
 @dp.callback_query(lambda c: c.data.startswith("roulette_bet_"))
 async def roulette_choose_color(callback: types.CallbackQuery, state: FSMContext):
@@ -233,7 +235,7 @@ async def roulette_choose_color(callback: types.CallbackQuery, state: FSMContext
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    await asyncio.sleep(0.1)
+    
 
 @dp.callback_query(lambda c: c.data in ["roulette_red", "roulette_black"])
 async def roulette_spin(callback: types.CallbackQuery, state: FSMContext):
@@ -285,7 +287,7 @@ async def roulette_spin(callback: types.CallbackQuery, state: FSMContext):
     
     await callback.message.edit_text(result_text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    await asyncio.sleep(0.1)
+    
 
 # =============== BLACK JACK (личная) ===============
 def calculate_hand(cards: List[str]) -> tuple:
@@ -327,7 +329,7 @@ def get_deck() -> List[str]:
 async def blackjack_menu(callback: types.CallbackQuery, state: FSMContext):
     """Меню Black Jack"""
     await state.set_state(GameStates.blackjack_betting)
-    
+
     text = """
 ♠️ **BLACK JACK** ♠️
 
@@ -339,34 +341,35 @@ async def blackjack_menu(callback: types.CallbackQuery, state: FSMContext):
 - При обычном выигрыше - получаете 2x от ставки
 
 Сколько ставите?
-    """
-    
+"""
+
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-        [
-            InlineKeyboardButton(text="10 🪙", callback_data="bj_bet_10"),
-            InlineKeyboardButton(text="50 🪙", callback_data="bj_bet_50"),
-            InlineKeyboardButton(text="100 🪙", callback_data="bj_bet_100")
-        ],
-        [
-            InlineKeyboardButton(text="250 🪙", callback_data="bj_bet_250"),
-            InlineKeyboardButton(text="500 🪙", callback_data="bj_bet_500"),
-            InlineKeyboardButton(text="1000 🪙", callback_data="bj_bet_1000")
-        ],
-        [
-            InlineKeyboardButton(text="5000 🪙", callback_data="bj_bet_5000"),
-            InlineKeyboardButton(text="10000 🪙", callback_data="bj_bet_10000"),
-            InlineKeyboardButton(text="20000 🪙", callback_data="bj_bet_20000")
-        ],
-        [
-            InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu")
+            [
+                InlineKeyboardButton(text="10 🪙", callback_data="bj_bet_10"),
+                InlineKeyboardButton(text="50 🪙", callback_data="bj_bet_50"),
+                InlineKeyboardButton(text="100 🪙", callback_data="bj_bet_100"),
+            ],
+            [
+                InlineKeyboardButton(text="250 🪙", callback_data="bj_bet_250"),
+                InlineKeyboardButton(text="500 🪙", callback_data="bj_bet_500"),
+                InlineKeyboardButton(text="1000 🪙", callback_data="bj_bet_1000"),
+            ],
+            [
+                InlineKeyboardButton(text="5000 🪙", callback_data="bj_bet_5000"),
+                InlineKeyboardButton(text="10000 🪙", callback_data="bj_bet_10000"),
+                InlineKeyboardButton(text="20000 🪙", callback_data="bj_bet_20000"),
+            ],
+            [
+                InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
+            ],
         ]
-    ])
+    )
 
-    
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    await asyncio.sleep(0.1)
+
+    
 
 @dp.callback_query(lambda c: c.data.startswith("bj_bet_"))
 async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
@@ -432,7 +435,7 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
         
         await callback.message.edit_text(result_text, reply_markup=keyboard, parse_mode="Markdown")
         await callback.answer()
-        await asyncio.sleep(0.1)
+        
         return
     
     # Нет BLACK JACK - игра продолжается
@@ -465,7 +468,7 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    await asyncio.sleep(0.1)
+    
 
 @dp.callback_query(lambda c: c.data == "bj_hit")
 async def blackjack_hit(callback: types.CallbackQuery, state: FSMContext):
@@ -518,7 +521,7 @@ async def blackjack_hit(callback: types.CallbackQuery, state: FSMContext):
         await state.clear()
         await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
         await callback.answer()
-        await asyncio.sleep(0.1)
+        
         return
     
     await state.update_data(bj_deck=deck, bj_player_cards=player_cards)
@@ -543,7 +546,7 @@ async def blackjack_hit(callback: types.CallbackQuery, state: FSMContext):
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    await asyncio.sleep(0.1)
+    
 
 @dp.callback_query(lambda c: c.data == "bj_stand")
 async def blackjack_stand(callback: types.CallbackQuery, state: FSMContext):
@@ -658,7 +661,7 @@ async def blackjack_stand(callback: types.CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.message.edit_text(result, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    await asyncio.sleep(0.1)
+    
 
 # =============== ГРУППОВАЯ РУЛЕТКА ===============
 @dp.callback_query(lambda c: c.data == "group_roulette_menu")
@@ -674,33 +677,35 @@ async def group_roulette_menu(callback: types.CallbackQuery, state: FSMContext):
 - У каждого свой баланс и счет
 
 Выберите ставку:
-    """
-    
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-    InlineKeyboardButton(text="10 🪙", callback_data="group_bet_10"),
-    InlineKeyboardButton(text="50 🪙", callback_data="group_bet_50"),
-    InlineKeyboardButton(text="100 🪙", callback_data="group_bet_100")
-        ],
-        [
-    InlineKeyboardButton(text="250 🪙", callback_data="group_bet_250"),
-    InlineKeyboardButton(text="500 🪙", callback_data="group_bet_500"),
-    InlineKeyboardButton(text="1000 🪙", callback_data="group_bet_1000")
-        ],
-        [
-    InlineKeyboardButton(text="5000 🪙", callback_data="group_bet_5000"),
-    InlineKeyboardButton(text="10000 🪙", callback_data="group_bet_10000"),
-    InlineKeyboardButton(text="20000 🪙", callback_data="group_bet_20000")
-        ]
+"""
 
-        [
-            InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu")
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="10 🪙", callback_data="group_bet_10"),
+                InlineKeyboardButton(text="50 🪙", callback_data="group_bet_50"),
+                InlineKeyboardButton(text="100 🪙", callback_data="group_bet_100"),
+            ],
+            [
+                InlineKeyboardButton(text="250 🪙", callback_data="group_bet_250"),
+                InlineKeyboardButton(text="500 🪙", callback_data="group_bet_500"),
+                InlineKeyboardButton(text="1000 🪙", callback_data="group_bet_1000"),
+            ],
+            [
+                InlineKeyboardButton(text="5000 🪙", callback_data="group_bet_5000"),
+                InlineKeyboardButton(text="10000 🪙", callback_data="group_bet_10000"),
+                InlineKeyboardButton(text="20000 🪙", callback_data="group_bet_20000"),
+            ],
+            [
+                InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
+            ],
         ]
-    ])
-    
+    )
+
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    await asyncio.sleep(0.1)
+
+    
 
 @dp.callback_query(lambda c: c.data.startswith("group_bet_"))
 async def group_roulette_start(callback: types.CallbackQuery, state: FSMContext):
@@ -855,37 +860,37 @@ async def group_blackjack_menu(callback: types.CallbackQuery, state: FSMContext)
 - **ПЕРЕБОР** - игра заканчивается сразу
 
 Выберите ставку:
-    """
-    
-    keyboard = InlineKeyboardMarkup(
-    inline_keyboard=[
-        [
-            InlineKeyboardButton(text="10 🪙", callback_data="group_bj_bet_10"),
-            InlineKeyboardButton(text="50 🪙", callback_data="group_bj_bet_50"),
-            InlineKeyboardButton(text="100 🪙", callback_data="group_bj_bet_100"),
-        ],
-        [
-            InlineKeyboardButton(text="250 🪙", callback_data="group_bj_bet_250"),
-            InlineKeyboardButton(text="500 🪙", callback_data="group_bj_bet_500"),
-        ],
-        [
-            InlineKeyboardButton(text="1000 🪙", callback_data="group_bj_bet_1000"),
-            InlineKeyboardButton(text="5000 🪙", callback_data="group_bj_bet_5000"),
-        ],
-        [
-            InlineKeyboardButton(text="10000 🪙", callback_data="group_bj_bet_10000"),
-            InlineKeyboardButton(text="20000 🪙", callback_data="group_bj_bet_20000"),
-        ],
-        [
-            InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
-        ],
-    ]
-)
+"""
 
-    
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="10 🪙", callback_data="group_bj_bet_10"),
+                InlineKeyboardButton(text="50 🪙", callback_data="group_bj_bet_50"),
+                InlineKeyboardButton(text="100 🪙", callback_data="group_bj_bet_100"),
+            ],
+            [
+                InlineKeyboardButton(text="250 🪙", callback_data="group_bj_bet_250"),
+                InlineKeyboardButton(text="500 🪙", callback_data="group_bj_bet_500"),
+            ],
+            [
+                InlineKeyboardButton(text="1000 🪙", callback_data="group_bj_bet_1000"),
+                InlineKeyboardButton(text="5000 🪙", callback_data="group_bj_bet_5000"),
+            ],
+            [
+                InlineKeyboardButton(text="10000 🪙", callback_data="group_bj_bet_10000"),
+                InlineKeyboardButton(text="20000 🪙", callback_data="group_bj_bet_20000"),
+            ],
+            [
+                InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
+            ],
+        ]
+    )
+
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    await asyncio.sleep(0.1)
+
+    
 
 @dp.callback_query(lambda c: c.data.startswith("group_bj_bet_"))
 async def group_blackjack_start(callback: types.CallbackQuery, state: FSMContext):
@@ -960,7 +965,7 @@ async def group_blackjack_start(callback: types.CallbackQuery, state: FSMContext
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer("✅ Вы присоединились!")
-    await asyncio.sleep(0.1)
+    
 
 @dp.callback_query(lambda c: c.data.startswith("group_bj_hit_"))
 async def group_blackjack_hit(callback: types.CallbackQuery):
@@ -1122,7 +1127,7 @@ async def group_blackjack_dealer(callback: types.CallbackQuery):
     ])
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
-    await asyncio.sleep(0.1)
+    
     if chat_id in group_blackjack_games:
         del group_blackjack_games[chat_id]
     
@@ -1156,7 +1161,7 @@ async def show_stats(callback: types.CallbackQuery):
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    await asyncio.sleep(0.1)
+    
 
 @dp.callback_query(lambda c: c.data == "balance")
 async def show_balance(callback: types.CallbackQuery):
@@ -1178,7 +1183,7 @@ async def show_balance(callback: types.CallbackQuery):
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    await asyncio.sleep(0.1)
+    
 
 # =============== НАВИГАЦИЯ ===============
 @dp.callback_query(lambda c: c.data == "back_to_menu")
@@ -1187,31 +1192,32 @@ async def back_to_menu(callback: types.CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
     user = get_user(user_id)
     player_name = get_user_name(callback.from_user)
-    
+
     await state.set_state(GameStates.main_menu)
-    
+
     welcome_text = create_main_menu(user, player_name)
-    
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="🎡 Рулетка", callback_data="game_roulette"),
-            InlineKeyboardButton(text="♠️ Black Jack", callback_data="game_blackjack")
-        ],
-        [
-            InlineKeyboardButton(text="🎡 Рулетка в группе", callback_data="group_roulette_menu")
-        ],
-        [
-            InlineKeyboardButton(text="♠️ Black Jack в группе", callback_data="group_blackjack_menu")
-        ],
-        [
-            InlineKeyboardButton(text="📊 Статистика", callback_data="stats"),
-            InlineKeyboardButton(text="💰 Баланс", callback_data="balance")
+
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="🎡 Рулетка", callback_data="game_roulette"),
+                InlineKeyboardButton(text="♠️ Black Jack", callback_data="game_blackjack"),
+            ],
+            [
+                InlineKeyboardButton(text="🎡 Рулетка в группе", callback_data="group_roulette_menu"),
+                InlineKeyboardButton(text="♠️ Black Jack в группе", callback_data="group_blackjack_menu"),
+            ],
+            [
+                InlineKeyboardButton(text="📊 Статистика", callback_data="stats"),
+                InlineKeyboardButton(text="💰 Баланс", callback_data="balance"),
+            ],
         ]
-    ])
-    
+    )
+
     await callback.message.edit_text(welcome_text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
-    await asyncio.sleep(0.1)
+
+    
 
 # =============== ЗАПУСК БОТА ===============
 async def main():
