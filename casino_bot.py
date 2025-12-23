@@ -1521,12 +1521,12 @@ async def group_roulette_start(callback: types.CallbackQuery, state: FSMContext)
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="🔴 Красное", callback_data=f"group_color_red_{user_id}"),
-            InlineKeyboardButton(text="⬛ Чёрное", callback_data=f"group_color_black_{user_id}")
+            InlineKeyboardButton(text="🔴 Красное", callback_data="group_color_red"),
+            InlineKeyboardButton(text="⬛ Чёрное", callback_data="group_color_black"),
         ],
         [
-            InlineKeyboardButton(text="🎡 Запустить рулетку!", callback_data="group_roulette_spin")
-        ]
+            InlineKeyboardButton(text="🎡 Запустить рулетку!", callback_data="group_roulette_spin"),
+        ],
     ])
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
@@ -1534,24 +1534,23 @@ async def group_roulette_start(callback: types.CallbackQuery, state: FSMContext)
 
 @dp.callback_query(lambda c: c.data.startswith("group_color_"))
 async def group_roulette_color(callback: types.CallbackQuery):
-    """Выбор цвета в групповой рулетке"""
-    parts = callback.data.split("_")
-    color = parts[2]
-    user_id = int(parts[3])
+    color = callback.data.split("_")[2]   # red / black
+    user_id = callback.from_user.id
     chat_id = callback.message.chat.id
-    
+
     if chat_id not in group_roulette_games:
         await callback.answer("❌ Игра не начиналась", show_alert=True)
         return
-    
+
     game = group_roulette_games[chat_id]
+
     if user_id not in game['players']:
         await callback.answer("❌ Вы не в этой игре", show_alert=True)
         return
-    
+
     color_name = "Красное" if color == "red" else "Чёрное"
     game['players'][user_id]['color'] = color
-    
+
     await callback.answer(f"✅ Вы выбрали: {color_name}")
 
 @dp.callback_query(lambda c: c.data == "group_roulette_spin")
@@ -1759,28 +1758,19 @@ async def group_blackjack_start(callback: types.CallbackQuery, state: FSMContext
     keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
          [
-            InlineKeyboardButton(text="🎴 Ещё карту", callback_data=f"group_bj_hit_{user_id}"),
-            InlineKeyboardButton(text="⏹️ Стоп", callback_data=f"group_bj_stand_{user_id}")
+            InlineKeyboardButton(text="🎴 Ещё карту", callback_data="group_bj_hit"),
+            InlineKeyboardButton(text="⏹️ Стоп", callback_data="group_bj_stand"),
         ],
         [InlineKeyboardButton(text="✅ Начать игру дилера", callback_data="group_bj_dealer")],
+    
     ],
 )
 
-    
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer("✅ Вы присоединились!")
     
-@dp.callback_query(lambda c: c.data.startswith("group_bj_hit_"))
-async def group_blackjack_hit(callback: types.CallbackQuery):
-    user_id = int(callback.data.split("_")[3])
-
-    # защита от чужих нажатий
-    if user_id != callback.from_user.id:
-        await callback.answer("❌ Это кнопка другого игрока.", show_alert=True)
-        return
-
-    chat_id = callback.message.chat.id
-    """Взять карту в групповой игре"""
+@dp.callback_query(lambda c: c.data == "group_bj_stand")
+async def group_blackjack_stand(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     chat_id = callback.message.chat.id
 
@@ -1789,6 +1779,7 @@ async def group_blackjack_hit(callback: types.CallbackQuery):
         return
 
     game = group_blackjack_games[chat_id]
+
     if user_id not in game['players']:
         await callback.answer("❌ Вы не в этой игре", show_alert=True)
         return
@@ -1798,22 +1789,12 @@ async def group_blackjack_hit(callback: types.CallbackQuery):
         await callback.answer("❌ Ваша игра уже завершена", show_alert=True)
         return
 
-    deck = game['deck']
-    if not deck:
-        deck = get_deck()
-        game['deck'] = deck
-
-    player['cards'].append(deck.pop())
     value, _ = calculate_hand(player['cards'])
+    player['status'] = 'stand'
+    player['finished'] = True
+    await callback.answer(f"⏹️ Вы остановились с {value} очками")
 
-    if value > 21:
-        player['status'] = 'bust'
-        player['finished'] = True
-        await callback.answer(f"💥 ПЕРЕБОР! {value} очков - ваша игра закончена", show_alert=True)
-    else:
-        await callback.answer(f"🎴 Вы взяли карту. Сумма: {value}")
-
-@dp.callback_query(lambda c: c.data.startswith("group_bj_stand_"))
+@dp.callback_query(lambda c: c.data.startswith("group_bj_stand"))
 async def group_blackjack_stand(callback: types.CallbackQuery):
     user_id = int(callback.data.split("_")[3])
 
