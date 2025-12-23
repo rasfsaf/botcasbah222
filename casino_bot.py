@@ -91,10 +91,21 @@ def get_user(user_id: int) -> dict:
             'total_won': 0,
             'total_lost': 0,
             'games_played': 0,
-            'username': 'Unknown'
+            'username': 'Unknown',
+            'transfers_sent': 0,
+            'transfers_received': 0,
         }
         save_users_data()
+    else:
+        user = users_data[user_id_str]
+        if 'transfers_sent' not in user:
+            user['transfers_sent'] = 0
+        if 'transfers_received' not in user:
+            user['transfers_received'] = 0
+        users_data[user_id_str] = user
+        save_users_data()
     return users_data[user_id_str]
+
 
 def get_user_by_username(username: str) -> dict | None:
     """
@@ -236,10 +247,12 @@ async def pay_command(message: types.Message):
 
     sender["shekels"] -= amount
     sender["total_lost"] += amount
+    sender["transfers_sent"] = sender.get("transfers_sent", 0) + amount
 
     receiver["shekels"] += amount
     receiver["total_won"] += amount
-
+    receiver["transfers_received"] = receiver.get("transfers_received", 0) + amount
+    
     save_user(user_id, sender)
 
     receiver_id = None
