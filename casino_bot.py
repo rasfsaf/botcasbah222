@@ -1769,8 +1769,8 @@ async def group_blackjack_start(callback: types.CallbackQuery, state: FSMContext
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer("✅ Вы присоединились!")
     
-@dp.callback_query(lambda c: c.data == "group_bj_stand")
-async def group_blackjack_stand(callback: types.CallbackQuery):
+@dp.callback_query(lambda c: c.data == "group_bj_hit")
+async def group_blackjack_hit(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     chat_id = callback.message.chat.id
 
@@ -1785,14 +1785,25 @@ async def group_blackjack_stand(callback: types.CallbackQuery):
         return
 
     player = game['players'][user_id]
+
     if player['finished']:
         await callback.answer("❌ Ваша игра уже завершена", show_alert=True)
         return
 
+    deck = game['deck']
+    if not deck:
+        deck = get_deck()
+        game['deck'] = deck
+
+    player['cards'].append(deck.pop())
     value, _ = calculate_hand(player['cards'])
-    player['status'] = 'stand'
-    player['finished'] = True
-    await callback.answer(f"⏹️ Вы остановились с {value} очками")
+
+    if value > 21:
+        player['status'] = 'bust'
+        player['finished'] = True
+        await callback.answer(f"💥 ПЕРЕБОР! {value} очков - ваша игра закончена", show_alert=True)
+    else:
+        await callback.answer(f"🎴 Вы взяли карту. Сумма: {value}")
 
 @dp.callback_query(lambda c: c.data.startswith("group_bj_stand"))
 async def group_blackjack_stand(callback: types.CallbackQuery):
