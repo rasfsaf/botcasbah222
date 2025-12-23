@@ -450,12 +450,6 @@ async def slots_spin(callback: types.CallbackQuery, state: FSMContext):
         bet = user["shekels"]
     else:
         bet = int(data_parts[-1])
-
-    data_parts = callback.data.split("_")
-    if data_parts[-1] == "all":
-        bet = user["shekels"]
-    else:
-        bet = int(data_parts[-1])
     
     if user['shekels'] < bet:
         await callback.answer(f"❌ Недостаточно! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}", show_alert=True)
@@ -1211,12 +1205,6 @@ async def roulette_spin(callback: types.CallbackQuery, state: FSMContext):
     
     user_id = callback.from_user.id
     user = get_user(user_id)
-
-    data_parts = callback.data.split("_")
-    if data_parts[-1] == "all":
-        bet = user["shekels"]
-    else:
-        bet = int(data_parts[-1])
     
     result_color = random.choices(["Красное", "Чёрное"], weights=[35, 35])[0]
     is_win = result_color == chosen_color
@@ -1581,12 +1569,6 @@ async def blackjack_stand(callback: types.CallbackQuery, state: FSMContext):
     
     user_id = callback.from_user.id
     user = get_user(user_id)
-
-    data_parts = callback.data.split("_")
-    if data_parts[-1] == "all":
-        bet = user["shekels"]
-    else:
-        bet = int(data_parts[-1])
     
     # Проверяем BLACK JACK у дилера
     if is_blackjack(dealer_cards):
@@ -2188,12 +2170,6 @@ async def show_stats(callback: types.CallbackQuery):
     """Показать статистику"""
     user_id = callback.from_user.id
     user = get_user(user_id)
-
-    data_parts = callback.data.split("_")
-    if data_parts[-1] == "all":
-        bet = user["shekels"]
-    else:
-        bet = int(data_parts[-1])
     
     profit = user['total_won'] - user['total_lost']
     profit_emoji = "📈" if profit >= 0 else "📉"
@@ -2221,12 +2197,6 @@ async def show_balance(callback: types.CallbackQuery):
     """Показать баланс"""
     user_id = callback.from_user.id
     user = get_user(user_id)
-
-    data_parts = callback.data.split("_")
-    if data_parts[-1] == "all":
-        bet = user["shekels"]
-    else:
-        bet = int(data_parts[-1])
     
     text = f"""
 💰 **ВАШ БАЛАНС** 💰
@@ -2248,12 +2218,6 @@ async def back_to_menu(callback: types.CallbackQuery, state: FSMContext):
     """Вернуться в главное меню"""
     user_id = callback.from_user.id
     user = get_user(user_id)
-
-    data_parts = callback.data.split("_")
-    if data_parts[-1] == "all":
-        bet = user["shekels"]
-    else:
-        bet = int(data_parts[-1])
     player_name = get_user_name(callback.from_user)
 
     await state.set_state(GameStates.main_menu)
