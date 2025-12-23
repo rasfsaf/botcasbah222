@@ -1,5 +1,5 @@
 # Telegram Casino Bot - Рулетка и Black Jack
-# Версия: 5 - Казино Щедрый Еврей (ИСПРАВЛЕННЫЙ BLACK JACK в группе, ДОБАВЛЕНЫ СЛОТЫ!!!)
+# Версия: 6 - Казино Щедрый Еврей (МНОГО ФИКСОВ, ДОБАВЛЕНЫ СЛОТЫ!!!)
 # Валюта: Шекели
 
 import asyncio
@@ -422,12 +422,13 @@ async def slots_menu(callback: types.CallbackQuery, state: FSMContext):
             InlineKeyboardButton(text="500000 🪙", callback_data="slots_bet_500000"),
             InlineKeyboardButton(text="1 000 000 🪙", callback_data="slots_bet_1000000"),
         ],
-        [   InlineKeyboardButton(text="2 000 000 🪙", callback_data="slots_bet_2000000"),
+        [ 
+              InlineKeyboardButton(text="2 000 000 🪙", callback_data="slots_bet_2000000"),
           InlineKeyboardButton(text="5 000 000 🪙", callback_data="slots_bet_5000000"),
         InlineKeyboardButton(text="10 000 000 🪙", callback_data="slots_bet_10000000"),
         InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="slots_bet_all"),
          
-         ]
+         ],
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -811,8 +812,10 @@ async def slots_gold_menu(callback: types.CallbackQuery, state: FSMContext):
     [
         InlineKeyboardButton(text="2 000 000 🪙", callback_data="slots_gold_bet_2000000"),
         InlineKeyboardButton(text="5 000 000 🪙", callback_data="slots_gold_bet_5000000"),
-        InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="slots_gold_bet_all"),
+        InlineKeyboardButton(text="10 000 000 🪙", callback_data="slots_gold_bet_10000000"),
     ],
+    [InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="slots_gold_bet_all"),
+     ],
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],

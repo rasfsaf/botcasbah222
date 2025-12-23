@@ -1,11 +1,11 @@
 {
   "7941650878": {
-    "shekels": 23974792,
-    "total_won": 38190916,
-    "total_lost": 14233619,
-    "games_played": 113,
+    "shekels": 205774792,
+    "total_won": 230190916,
+    "total_lost": 24433619,
+    "games_played": 117,
     "username": "oslekki",
-    "transfers_sent": 244869,
+    "transfers_sent": 10244869,
     "transfers_received": 111
   },
   "6089028555": {
@@ -18,13 +18,13 @@
     "transfers_sent": 0
   },
   "6573415066": {
-    "shekels": 7950,
-    "total_won": 50,
+    "shekels": 10007950,
+    "total_won": 10000050,
     "total_lost": 300,
     "games_played": 3,
     "username": "Unknown",
     "transfers_sent": 0,
-    "transfers_received": 0
+    "transfers_received": 10000000
   },
   "7272223483": {
     "shekels": 13221,
