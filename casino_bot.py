@@ -2101,6 +2101,10 @@ async def back_to_menu(callback: types.CallbackQuery, state: FSMContext):
                 InlineKeyboardButton(text="📊 Статистика", callback_data="stats"),
                 InlineKeyboardButton(text="💰 Баланс", callback_data="balance"),
             ],
+            [
+            InlineKeyboardButton(text="💸 Перевод шекелей", callback_data="transfer_menu"),
+        ],
+            
         ]
     )
 
