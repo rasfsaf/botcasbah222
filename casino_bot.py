@@ -441,7 +441,7 @@ async def slots_menu(callback: types.CallbackQuery, state: FSMContext):
 @dp.callback_query(lambda c: c.data.startswith("slots_bet_"))
 async def slots_spin(callback: types.CallbackQuery, state: FSMContext):
     """Вращение слотов"""
-    bet = int(callback.data.split("_")[2])
+    
     user_id = callback.from_user.id
     user = get_user(user_id)
 
@@ -1157,7 +1157,7 @@ async def roulette_menu(callback: types.CallbackQuery, state: FSMContext):
 @dp.callback_query(lambda c: c.data.startswith("roulette_bet_"))
 async def roulette_choose_color(callback: types.CallbackQuery, state: FSMContext):
     """Выбор цвета в рулетке"""
-    bet = int(callback.data.split("_")[2])
+    
     user_id = callback.from_user.id
     user = get_user(user_id)
 
@@ -1362,7 +1362,7 @@ async def blackjack_menu(callback: types.CallbackQuery, state: FSMContext):
 @dp.callback_query(lambda c: c.data.startswith("bj_bet_"))
 async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
     """Начало игры Black Jack"""
-    bet = int(callback.data.split("_")[2])
+    
     user_id = callback.from_user.id
     user = get_user(user_id)
 
@@ -1716,10 +1716,16 @@ async def group_roulette_menu(callback: types.CallbackQuery, state: FSMContext):
 @dp.callback_query(lambda c: c.data.startswith("group_bet_"))
 async def group_roulette_start(callback: types.CallbackQuery, state: FSMContext):
     """Начало групповой рулетки"""
-    bet = int(callback.data.split("_")[2])
+    
     user_id = callback.from_user.id
     player_name = get_user_name(callback.from_user)
     user = get_user(user_id)
+
+    data_parts = callback.data.split("_")
+    if data_parts[-1] == "all":
+        bet = user["shekels"]
+    else:
+        bet = int(data_parts[-1])
     
     if user['shekels'] < bet:
         await callback.answer(f"❌ Недостаточно! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}", show_alert=True)
@@ -1953,7 +1959,13 @@ async def group_blackjack_start(callback: types.CallbackQuery, state: FSMContext
     user_id = callback.from_user.id
     player_name = get_user_name(callback.from_user)
     user = get_user(user_id)
-    
+
+    data_parts = callback.data.split("_")
+    if data_parts[-1] == "all":
+        bet = user["shekels"]
+    else:
+        bet = int(data_parts[-1])
+
     if user['shekels'] < bet:
         await callback.answer(f"❌ Недостаточно! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}", show_alert=True)
         return
