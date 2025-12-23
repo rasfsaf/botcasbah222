@@ -568,7 +568,7 @@ async def slots_multiplier_menu(callback: types.CallbackQuery, state: FSMContext
 @dp.callback_query(lambda c: c.data.startswith("slots_mult_bet_"))
 async def slots_multiplier_spin(callback: types.CallbackQuery, state: FSMContext):
     """Вращение слотов с мультипликатором"""
-    bet = int(callback.data.split("_")[3])
+    
     user_id = callback.from_user.id
     user = get_user(user_id)
 
@@ -709,7 +709,7 @@ async def slots_risk_menu(callback: types.CallbackQuery, state: FSMContext):
 @dp.callback_query(lambda c: c.data.startswith("slots_risk_bet_"))
 async def slots_risk_spin(callback: types.CallbackQuery, state: FSMContext):
     """Вращение рискованных слотов"""
-    bet = int(callback.data.split("_")[3])
+    
     user_id = callback.from_user.id
     user = get_user(user_id)
 
@@ -846,7 +846,7 @@ async def slots_gold_menu(callback: types.CallbackQuery, state: FSMContext):
 @dp.callback_query(lambda c: c.data.startswith("slots_gold_bet_"))
 async def slots_gold_spin(callback: types.CallbackQuery, state: FSMContext):
     """Вращение слотов Золотая лихорадка"""
-    bet = int(callback.data.split("_")[3])
+    
     user_id = callback.from_user.id
     user = get_user(user_id)
 
@@ -1002,7 +1002,7 @@ async def slots_free_menu(callback: types.CallbackQuery, state: FSMContext):
 @dp.callback_query(lambda c: c.data.startswith("slots_free_bet_"))
 async def slots_free_spin(callback: types.CallbackQuery, state: FSMContext):
     """Вращение слотов с бесплатными вращениями"""
-    bet = int(callback.data.split("_")[3])
+    
     user_id = callback.from_user.id
     user = get_user(user_id)
 
@@ -1955,7 +1955,7 @@ async def group_blackjack_menu(callback: types.CallbackQuery, state: FSMContext)
 @dp.callback_query(lambda c: c.data.startswith("group_bj_bet_"))
 async def group_blackjack_start(callback: types.CallbackQuery, state: FSMContext):
     """Присоединение к групповой игре Black Jack"""
-    bet = int(callback.data.split("_")[3])
+    
     user_id = callback.from_user.id
     player_name = get_user_name(callback.from_user)
     user = get_user(user_id)
