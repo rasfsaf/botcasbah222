@@ -357,9 +357,7 @@ async def blackjack_menu(callback: types.CallbackQuery, state: FSMContext):
                 InlineKeyboardButton(text="10000 🪙", callback_data="bj_bet_10000"),
                 InlineKeyboardButton(text="20000 🪙", callback_data="bj_bet_20000"),
             ],
-            [
-                InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
-            ],
+            
             [
     InlineKeyboardButton(text="10 🪙", callback_data="bj_bet_10"),
     InlineKeyboardButton(text="50 🪙", callback_data="bj_bet_50"),
@@ -383,6 +381,9 @@ async def blackjack_menu(callback: types.CallbackQuery, state: FSMContext):
     InlineKeyboardButton(text="200000 🪙", callback_data="bj_bet_200000"),
     InlineKeyboardButton(text="500000 🪙", callback_data="bj_bet_500000"),
 ],
+[
+                InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
+            ],
         ]
     )
 
@@ -1003,15 +1004,9 @@ async def group_blackjack_start(callback: types.CallbackQuery, state: FSMContext
     
     keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
-        [
-            InlineKeyboardButton(
-                text="🎴 Ещё карту",
-                callback_data=f"group_bj_hit_"
-            ),
-            InlineKeyboardButton(
-                text="⏹️ Стоп",
-                callback_data=f"group_bj_stand_"
-            ),
+         [
+            InlineKeyboardButton(text="🎴 Ещё карту", callback_data=f"group_bj_hit_{user_id}"),
+            InlineKeyboardButton(text="⏹️ Стоп", callback_data=f"group_bj_stand_{user_id}")
         ],
         [InlineKeyboardButton(text="✅ Начать игру дилера", callback_data="group_bj_dealer")],
     ],
@@ -1090,6 +1085,12 @@ async def group_blackjack_stand(callback: types.CallbackQuery):
     if player['finished']:
         await callback.answer("❌ Ваша игра уже завершена", show_alert=True)
         return
+    
+    player = game['players'][user_id]
+    value, _ = calculate_hand(player['cards'])
+    player['status'] = 'stand'
+    await callback.answer(f"⏹️ Вы остановились с {value} очками")
+
 
     value, _ = calculate_hand(player['cards'])
     player['status'] = 'stand'
