@@ -51,7 +51,8 @@ class GameStates(StatesGroup):
     group_blackjack_playing = State()
     slots_betting = State()
     slots_spinning = State()
-
+    roulette_custom_bet = State()
+    blackjack_custom_bet = State()
 
 # =============== БАЗА ДАННЫХ ===============
 users_data: Dict[int, dict] = {}
@@ -292,6 +293,7 @@ async def slots_menu(callback: types.CallbackQuery, state: FSMContext):
             InlineKeyboardButton(text="200000 🪙", callback_data="slots_bet_200000"),
             InlineKeyboardButton(text="500000 🪙", callback_data="slots_bet_500000"),
         ],
+        
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -936,6 +938,7 @@ async def roulette_menu(callback: types.CallbackQuery, state: FSMContext):
     InlineKeyboardButton(text="200000 🪙", callback_data="roulette_bet_200000"),
     InlineKeyboardButton(text="500000 🪙", callback_data="roulette_bet_500000"),
 ],
+[InlineKeyboardButton(text="✏️ Своя ставка", callback_data="roulette_bet_custom")],
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -944,6 +947,15 @@ async def roulette_menu(callback: types.CallbackQuery, state: FSMContext):
 
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
+
+@dp.callback_query(lambda c: c.data == "roulette_bet_custom")
+async def roulette_custom_bet_start(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(GameStates.roulette_custom_bet)
+    await callback.answer()
+    await callback.message.edit_text(
+        "🎡 Введите **свою ставку** числом (минимум 10):",
+        parse_mode="Markdown"
+    )
 
 @dp.callback_query(lambda c: c.data.startswith("roulette_bet_"))
 async def roulette_choose_color(callback: types.CallbackQuery, state: FSMContext):
@@ -957,7 +969,34 @@ async def roulette_choose_color(callback: types.CallbackQuery, state: FSMContext
         return
     
     await state.update_data(roulette_bet=bet)
-    
+
+@dp.message(StateFilter(GameStates.roulette_custom_bet))
+async def roulette_custom_bet_input(message: types.Message, state: FSMContext):
+    user_id = message.from_user.id
+    user = get_user(user_id)
+
+    # пробуем парсить число
+    try:
+        bet = int(message.text.strip())
+    except ValueError:
+        await message.reply("❌ Введите целое число, например: 150")
+        return
+
+    if bet < 10:
+        await message.reply("❌ Минимальная ставка 10 🪙")
+        return
+
+    if user['shekels'] < bet:
+        await message.reply(
+            f"❌ Недостаточно средств! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}",
+            parse_mode="Markdown"
+        )
+        return
+
+    # сохраняем ставку и идём к выбору цвета (используем уже существующую логику)
+    await state.update_data(roulette_bet=bet)
+    await state.set_state(GameStates.roulette_betting)
+
     text = f"""
 🎡 **ВЫБЕРИТЕ ЦВЕТ** 🎡
 
@@ -979,7 +1018,6 @@ async def roulette_choose_color(callback: types.CallbackQuery, state: FSMContext
     ])
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
-    await callback.answer()
     
 @dp.callback_query(lambda c: c.data in ["roulette_red", "roulette_black"])
 async def roulette_spin(callback: types.CallbackQuery, state: FSMContext):
@@ -1127,6 +1165,7 @@ async def blackjack_menu(callback: types.CallbackQuery, state: FSMContext):
     InlineKeyboardButton(text="200000 🪙", callback_data="bj_bet_200000"),
     InlineKeyboardButton(text="500000 🪙", callback_data="bj_bet_500000"),
 ],
+ [InlineKeyboardButton(text="✏️ Своя ставка", callback_data="bj_bet_custom")]
 [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -1135,6 +1174,16 @@ async def blackjack_menu(callback: types.CallbackQuery, state: FSMContext):
 
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
+
+@dp.callback_query(lambda c: c.data == "bj_bet_custom")
+async def blackjack_custom_bet_start(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(GameStates.blackjack_custom_bet)
+    await callback.answer()
+    await callback.message.edit_text(
+        "♠️ Введите **свою ставку** числом (минимум 10):",
+        parse_mode="Markdown"
+    )
+
 
 @dp.callback_query(lambda c: c.data.startswith("bj_bet_"))
 async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
@@ -1147,18 +1196,39 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
         await callback.answer(f"❌ Недостаточно! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}", show_alert=True)
         return
     
+@dp.message(StateFilter(GameStates.blackjack_custom_bet))
+async def blackjack_custom_bet_input(message: types.Message, state: FSMContext):
+    user_id = message.from_user.id
+    user = get_user(user_id)
+
+    try:
+        bet = int(message.text.strip())
+    except ValueError:
+        await message.reply("❌ Введите целое число, например: 250")
+        return
+
+    if bet < 10:
+        await message.reply("❌ Минимальная ставка 10 🪙")
+        return
+
+    if user['shekels'] < bet:
+        await message.reply(
+            f"❌ Недостаточно! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}",
+            parse_mode="Markdown"
+        )
+        return
+
+    # дальше почти копия blackjack_start, только вместо callback используем message
     deck = get_deck()
     player_cards = [deck.pop(), deck.pop()]
     dealer_cards = [deck.pop(), deck.pop()]
-    
+
     player_value, _ = calculate_hand(player_cards)
     dealer_value, _ = calculate_hand(dealer_cards)
-    
-    # ✅ ИСПРАВЛЕННАЯ ПРОВЕРКА BLACK JACK
+
+    # проверка blackjack
     if is_blackjack(player_cards):
-        # Проверяем BLACK JACK у дилера
         if is_blackjack(dealer_cards):
-            # Оба имеют BLACK JACK - ничья, возвращаем ставку
             user['shekels'] += bet
             user['total_won'] += bet
             winnings = bet
@@ -1169,10 +1239,10 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
 **Карты дилера:** {' '.join(dealer_cards)} = **21** 🎯
 
 Ставка возвращена: **+{bet}** 🪙
+
 Новый баланс: {format_currency(user['shekels'])}
-            """
+"""
         else:
-            # Только игрок имеет BLACK JACK - выигрыш 5x
             winnings = bet * 5
             user['shekels'] += winnings
             user['total_won'] += winnings
@@ -1183,27 +1253,24 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
 **Карты дилера:** {' '.join(dealer_cards)} = **{dealer_value}**
 
 ✨ ВЫИГРЫШ В 5 РАЗ! ✨
+
 Выигрыш: **+{winnings}** 🪙
 
 Новый баланс: {format_currency(user['shekels'])}
-            """
-        
+"""
         user['games_played'] += 1
         save_user(user_id, user)
-        
+
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [
-                InlineKeyboardButton(text="♠️ Ещё партию", callback_data="game_blackjack"),
-                InlineKeyboardButton(text="🏠 Меню", callback_data="back_to_menu")
-            ]
+            [InlineKeyboardButton(text="♠️ Ещё партию", callback_data="game_blackjack"),
+             InlineKeyboardButton(text="🏠 Меню", callback_data="back_to_menu")]
         ])
-        
-        await callback.message.edit_text(result_text, reply_markup=keyboard, parse_mode="Markdown")
-        await callback.answer()
-        
+
+        await state.clear()
+        await message.answer(result_text, reply_markup=keyboard, parse_mode="Markdown")
         return
-    
-    # Нет BLACK JACK - игра продолжается
+
+    # нет BJ – сохраняем состояние и продолжаем как обычно
     await state.update_data(
         bj_bet=bet,
         bj_deck=deck,
@@ -1212,7 +1279,7 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
         bj_player_id=user_id
     )
     await state.set_state(GameStates.blackjack_playing)
-    
+
     text = f"""
 ♠️ **BLACK JACK - ИГРА** ♠️
 
@@ -1222,17 +1289,13 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
 **Карта дилера:** {dealer_cards[0]} ?
 
 **Ставка:** {format_currency(bet)}
-    """
-    
+"""
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="🎴 Ещё карту", callback_data="bj_hit"),
-            InlineKeyboardButton(text="⏹️ Стоп", callback_data="bj_stand")
-        ]
+        [InlineKeyboardButton(text="🎴 Ещё карту", callback_data="bj_hit"),
+         InlineKeyboardButton(text="⏹️ Стоп", callback_data="bj_stand")]
     ])
-    
-    await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
-    await callback.answer()
+
+    await message.answer(text, reply_markup=keyboard, parse_mode="Markdown")
     
 
 @dp.callback_query(lambda c: c.data == "bj_hit")
