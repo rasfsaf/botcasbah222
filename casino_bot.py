@@ -420,7 +420,14 @@ async def slots_menu(callback: types.CallbackQuery, state: FSMContext):
         [
             InlineKeyboardButton(text="200000 🪙", callback_data="slots_bet_200000"),
             InlineKeyboardButton(text="500000 🪙", callback_data="slots_bet_500000"),
+            InlineKeyboardButton(text="1 000 000 🪙", callback_data="slots_bet_1000000"),
         ],
+        [   InlineKeyboardButton(text="2 000 000 🪙", callback_data="slots_bet_2000000"),
+          InlineKeyboardButton(text="5 000 000 🪙", callback_data="slots_bet_5000000"),
+        InlineKeyboardButton(text="10 000 000 🪙", callback_data="slots_bet_10000000"),
+        InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="slots_bet_all"),
+         
+         ]
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -534,6 +541,14 @@ async def slots_multiplier_menu(callback: types.CallbackQuery, state: FSMContext
             InlineKeyboardButton(text="200000 🪙", callback_data="slots_mult_bet_200000"),
             InlineKeyboardButton(text="500000 🪙", callback_data="slots_mult_bet_500000"),
         ],
+        [InlineKeyboardButton(text="1 000 000 🪙", callback_data="slots_mult_bet_1000000"),
+        InlineKeyboardButton(text="2 000 000 🪙", callback_data="slots_mult_bet_2000000"),
+    ],
+    [
+        InlineKeyboardButton(text="5 000 000 🪙", callback_data="slots_mult_bet_5000000"),
+        InlineKeyboardButton(text="10 000 000 🪙", callback_data="slots_mult_bet_10000000"),
+        InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="slots_mult_bet_all"),
+    ],
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -660,6 +675,15 @@ async def slots_risk_menu(callback: types.CallbackQuery, state: FSMContext):
             InlineKeyboardButton(text="200000 🪙", callback_data="slots_risk_bet_200000"),
             InlineKeyboardButton(text="500000 🪙", callback_data="slots_risk_bet_500000"),
         ],
+        [
+        InlineKeyboardButton(text="1 000 000 🪙", callback_data="slots_risk_bet_1000000"),
+        InlineKeyboardButton(text="2 000 000 🪙", callback_data="slots_risk_bet_2000000"),
+    ],
+    [
+        InlineKeyboardButton(text="5 000 000 🪙", callback_data="slots_risk_bet_5000000"),
+        InlineKeyboardButton(text="10 000 000 🪙", callback_data="slots_risk_bet_10000000"),
+        InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="slots_risk_bet_all"),
+    ],
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -781,6 +805,14 @@ async def slots_gold_menu(callback: types.CallbackQuery, state: FSMContext):
             InlineKeyboardButton(text="200000 🪙", callback_data="slots_gold_bet_200000"),
             InlineKeyboardButton(text="500000 🪙", callback_data="slots_gold_bet_500000"),
         ],
+        [
+        InlineKeyboardButton(text="1 000 000 🪙", callback_data="slots_gold_bet_1000000"),
+    ],
+    [
+        InlineKeyboardButton(text="2 000 000 🪙", callback_data="slots_gold_bet_2000000"),
+        InlineKeyboardButton(text="5 000 000 🪙", callback_data="slots_gold_bet_5000000"),
+        InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="slots_gold_bet_all"),
+    ],
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -923,6 +955,14 @@ async def slots_free_menu(callback: types.CallbackQuery, state: FSMContext):
             InlineKeyboardButton(text="200000 🪙", callback_data="slots_free_bet_200000"),
             InlineKeyboardButton(text="500000 🪙", callback_data="slots_free_bet_500000"),
         ],
+        [InlineKeyboardButton(text="1 000 000 🪙", callback_data="slots_free_bet_1000000"),
+        InlineKeyboardButton(text="2 000 000 🪙", callback_data="slots_free_bet_2000000"),
+    ],
+    [
+        InlineKeyboardButton(text="5 000 000 🪙", callback_data="slots_free_bet_5000000"),
+        InlineKeyboardButton(text="10 000 000 🪙", callback_data="slots_free_bet_10000000"),
+        InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="slots_free_bet_all"),
+    ],
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -1065,6 +1105,14 @@ async def roulette_menu(callback: types.CallbackQuery, state: FSMContext):
     InlineKeyboardButton(text="200000 🪙", callback_data="roulette_bet_200000"),
     InlineKeyboardButton(text="500000 🪙", callback_data="roulette_bet_500000"),
 ],
+[ InlineKeyboardButton(text="1 000 000 🪙", callback_data="roulette_bet_1000000"),
+        InlineKeyboardButton(text="2 000 000 🪙", callback_data="roulette_bet_2000000"),
+    ],
+    [
+        InlineKeyboardButton(text="5 000 000 🪙", callback_data="roulette_bet_5000000"),
+        InlineKeyboardButton(text="10 000 000 🪙", callback_data="roulette_bet_10000000"),
+        InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="roulette_bet_all"),
+    ],
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -1256,6 +1304,14 @@ async def blackjack_menu(callback: types.CallbackQuery, state: FSMContext):
     InlineKeyboardButton(text="200000 🪙", callback_data="bj_bet_200000"),
     InlineKeyboardButton(text="500000 🪙", callback_data="bj_bet_500000"),
 ],
+[InlineKeyboardButton(text="1 000 000 🪙", callback_data="bj_bet_1000000"),
+        InlineKeyboardButton(text="2 000 000 🪙", callback_data="bj_bet_2000000"),
+    ],
+    [
+        InlineKeyboardButton(text="5 000 000 🪙", callback_data="bj_bet_5000000"),
+        InlineKeyboardButton(text="10 000 000 🪙", callback_data="bj_bet_10000000"),
+        InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="bj_bet_all"),
+    ],
 [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -1596,6 +1652,14 @@ async def group_roulette_menu(callback: types.CallbackQuery, state: FSMContext):
     InlineKeyboardButton(text="200000 🪙", callback_data="group_bet_200000"),
     InlineKeyboardButton(text="500000 🪙", callback_data="group_bet_500000"),
 ],
+[InlineKeyboardButton(text="1 000 000 🪙", callback_data="group_bet_1000000"),
+        InlineKeyboardButton(text="2 000 000 🪙", callback_data="group_bet_2000000"),
+    ],
+    [
+        InlineKeyboardButton(text="5 000 000 🪙", callback_data="group_bet_5000000"),
+        InlineKeyboardButton(text="10 000 000 🪙", callback_data="group_bet_10000000"),
+        InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="group_bet_all"),
+    ],
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -1813,13 +1877,21 @@ async def group_blackjack_menu(callback: types.CallbackQuery, state: FSMContext)
                 InlineKeyboardButton(text="20000 🪙", callback_data="group_bj_bet_20000"),
             ],
             [
-    InlineKeyboardButton(text="50000 💰", callback_data="group_bj_bet_50000"),
-    InlineKeyboardButton(text="100000 💰", callback_data="group_bj_bet_100000"),
+    InlineKeyboardButton(text="50000 🪙", callback_data="group_bj_bet_50000"),
+    InlineKeyboardButton(text="100000 🪙", callback_data="group_bj_bet_100000"),
 ],
 [
-    InlineKeyboardButton(text="200000 💰", callback_data="group_bj_bet_200000"),
-    InlineKeyboardButton(text="500000 💰", callback_data="group_bj_bet_500000"),
+    InlineKeyboardButton(text="200000 🪙", callback_data="group_bj_bet_200000"),
+    InlineKeyboardButton(text="500000 🪙", callback_data="group_bj_bet_500000"),
 ],
+[InlineKeyboardButton(text="1 000 000 🪙", callback_data="group_bj_bet_1000000"),
+        InlineKeyboardButton(text="2 000 000 🪙", callback_data="group_bj_bet_2000000"),
+    ],
+    [
+        InlineKeyboardButton(text="5 000 000 🪙", callback_data="group_bj_bet_5000000"),
+        InlineKeyboardButton(text="10 000 000 🪙", callback_data="group_bj_bet_10000000"),
+        InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="group_bj_bet_all"),
+    ],
 [
     InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
 ]
