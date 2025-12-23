@@ -360,6 +360,29 @@ async def blackjack_menu(callback: types.CallbackQuery, state: FSMContext):
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
+            [
+    InlineKeyboardButton(text="10 🪙", callback_data="bj_bet_10"),
+    InlineKeyboardButton(text="50 🪙", callback_data="bj_bet_50"),
+    InlineKeyboardButton(text="100 🪙", callback_data="bj_bet_100"),
+],
+[
+    InlineKeyboardButton(text="250 🪙", callback_data="bj_bet_250"),
+    InlineKeyboardButton(text="500 🪙", callback_data="bj_bet_500"),
+    InlineKeyboardButton(text="1000 🪙", callback_data="bj_bet_1000"),
+],
+[
+    InlineKeyboardButton(text="5000 🪙", callback_data="bj_bet_5000"),
+    InlineKeyboardButton(text="10000 🪙", callback_data="bj_bet_10000"),
+    InlineKeyboardButton(text="20000 🪙", callback_data="bj_bet_20000"),
+],
+[
+    InlineKeyboardButton(text="50000 🪙", callback_data="bj_bet_50000"),
+    InlineKeyboardButton(text="100000 🪙", callback_data="bj_bet_100000"),
+],
+[
+    InlineKeyboardButton(text="200000 🪙", callback_data="bj_bet_200000"),
+    InlineKeyboardButton(text="500000 🪙", callback_data="bj_bet_500000"),
+],
         ]
     )
 
@@ -836,12 +859,47 @@ async def group_roulette_spin(callback: types.CallbackQuery):
     await callback.answer("🎉 Игра завершена!")
 
 # =============== ГРУППОВОЙ BLACK JACK ===============
+def calculate_hand(cards: List[str]) -> tuple:
+    """Рассчитать значение руки"""
+    total = 0
+    aces = 0
+    for card in cards:
+        if card == 'A':
+            aces += 1
+            total += 11
+        elif card in ['J', 'Q', 'K']:
+            total += 10
+        else:
+            total += int(card)
+    
+    while total > 21 and aces > 0:
+        total -= 10
+        aces -= 1
+    
+    return total, aces
+
+def is_blackjack(cards: List[str]) -> bool:
+    """Проверить, есть ли Black Jack (21 с двумя картами)"""
+    if len(cards) != 2:
+        return False
+    value, _ = calculate_hand(cards)
+    return value == 21
+
+def get_deck() -> List[str]:
+    """Создать колоду карт"""
+    deck = []
+    cards = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+    for _ in range(4):
+        deck.extend(cards)
+    random.shuffle(deck)
+    return deck
+
 @dp.callback_query(lambda c: c.data == "group_blackjack_menu")
 async def group_blackjack_menu(callback: types.CallbackQuery, state: FSMContext):
     """Меню группового Black Jack"""
     text = """
 ♠️ **ГРУППОВОЙ BLACK JACK** ♠️
-
+  !!!ПРОЕКТ ГРУППОВОГО БЛЕК ДЖЕКА В БЕТА ТЕСТЕ, РАБОТАЕТ НЕ СТАБИЛЬНО!!!!
 **Как это работает:**
 - Все игроки играют против одного дилера
 - Каждый ставит свою сумму
@@ -853,8 +911,7 @@ async def group_blackjack_menu(callback: types.CallbackQuery, state: FSMContext)
 Выберите ставку:
 """
 
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
+    keyboard = InlineKeyboardMarkup( inline_keyboard=[
             [
                 InlineKeyboardButton(text="10 🪙", callback_data="group_bj_bet_10"),
                 InlineKeyboardButton(text="50 🪙", callback_data="group_bj_bet_50"),
@@ -873,8 +930,17 @@ async def group_blackjack_menu(callback: types.CallbackQuery, state: FSMContext)
                 InlineKeyboardButton(text="20000 🪙", callback_data="group_bj_bet_20000"),
             ],
             [
-                InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
-            ],
+    InlineKeyboardButton(text="50000 💰", callback_data="group_bj_bet_50000"),
+    InlineKeyboardButton(text="100000 💰", callback_data="group_bj_bet_100000"),
+],
+[
+    InlineKeyboardButton(text="200000 💰", callback_data="group_bj_bet_200000"),
+    InlineKeyboardButton(text="500000 💰", callback_data="group_bj_bet_500000"),
+],
+[
+    InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
+]
+
         ]
     )
 
