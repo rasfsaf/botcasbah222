@@ -266,6 +266,17 @@ async def pay_command(message: types.Message):
             )
         except Exception:
             pass
+        
+    if receiver_id is not None:
+        try:
+            await bot.send_message(
+                receiver_id,
+                f"💰 Ты получил {format_currency(amount)} от @{message.from_user.username or 'игрока'}!",
+                parse_mode="Markdown",
+            )
+        except Exception:
+            pass
+
 
     # =============== СЛОТЫ - ФУНКЦИИ ПОМОЩИ ===============
 def check_win(symbols: List[str], bet: int) -> tuple:
