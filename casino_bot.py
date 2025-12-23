@@ -1805,16 +1805,8 @@ async def group_blackjack_hit(callback: types.CallbackQuery):
     else:
         await callback.answer(f"🎴 Вы взяли карту. Сумма: {value}")
 
-@dp.callback_query(lambda c: c.data.startswith("group_bj_stand"))
+dp.callback_query(lambda c: c.data == "group_bj_stand")
 async def group_blackjack_stand(callback: types.CallbackQuery):
-    user_id = int(callback.data.split("_")[3])
-
-    if user_id != callback.from_user.id:
-        await callback.answer("❌ Это кнопка другого игрока.", show_alert=True)
-        return
-
-    chat_id = callback.message.chat.id
-    """Остановиться в групповой игре"""
     user_id = callback.from_user.id
     chat_id = callback.message.chat.id
 
@@ -1823,6 +1815,7 @@ async def group_blackjack_stand(callback: types.CallbackQuery):
         return
 
     game = group_blackjack_games[chat_id]
+
     if user_id not in game['players']:
         await callback.answer("❌ Вы не в этой игре", show_alert=True)
         return
@@ -1831,17 +1824,10 @@ async def group_blackjack_stand(callback: types.CallbackQuery):
     if player['finished']:
         await callback.answer("❌ Ваша игра уже завершена", show_alert=True)
         return
-    
-    player = game['players'][user_id]
-    value, _ = calculate_hand(player['cards'])
-    player['status'] = 'stand'
-    await callback.answer(f"⏹️ Вы остановились с {value} очками")
-
 
     value, _ = calculate_hand(player['cards'])
     player['status'] = 'stand'
     player['finished'] = True
-
     await callback.answer(f"⏹️ Вы остановились с {value} очками")
 
 @dp.callback_query(lambda c: c.data == "group_bj_dealer")
