@@ -650,6 +650,9 @@ async def slots_multiplier_menu(callback: types.CallbackQuery, state: FSMContext
         InlineKeyboardButton(text="10 000 000 🪙", callback_data="slots_mult_bet_10000000"),
         InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="slots_mult_bet_all"),
     ],
+    [
+            InlineKeyboardButton(text="✏️ Своя ставка", callback_data="slots_mult_bet_custom"),
+        ],
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -738,6 +741,101 @@ async def slots_multiplier_spin(callback: types.CallbackQuery, state: FSMContext
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
 
+@dp.callback_query(lambda c: c.data == "slots_mult_bet_custom")
+async def slots_mult_ask_custom_bet(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(GameStates.slots_mult_custom_bet)
+    await callback.message.edit_text(
+        "✏️ Введите свою ставку для слотов с мультипликатором:",
+        parse_mode="Markdown"
+    )
+    await callback.answer()
+
+
+@dp.message(StateFilter(GameStates.slots_mult_custom_bet))
+async def slots_mult_handle_custom_bet(message: types.Message, state: FSMContext):
+    user_id = message.from_user.id
+    user = get_user(user_id)
+
+    try:
+        bet = int(message.text.strip())
+    except ValueError:
+        await message.reply("❌ Введите целое число шекелей.")
+        return
+
+    if bet <= 0:
+        await message.reply("❌ Ставка должна быть больше нуля.")
+        return
+
+    if bet > user["shekels"]:
+        await message.reply(
+            f"❌ Недостаточно средств! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}",
+            parse_mode="Markdown",
+        )
+        return
+
+    reel1 = spin_slot()
+    reel2 = spin_slot()
+    reel3 = spin_slot()
+
+    result_symbols = [reel1[1], reel2[1], reel3[1]]
+    base_win, description = check_win(result_symbols, 1)
+
+    if base_win > 0:
+        multipliers = [5, 10, 15, 20, 50]
+        multiplier = random.choice(multipliers)
+        if "ДЖЕКПОТ" in description:
+            multiplier = random.choice([50, 75, 100, 150])
+
+        actual_winnings = int(bet * base_win * multiplier)
+        user['shekels'] += actual_winnings
+        user['total_won'] += actual_winnings
+        mult_text = f"🔥 x{multiplier} МУЛЬТИПЛИКАТОР!"
+        status = "✅ ЭКСТРА ВЫИГРЫШ!"
+        result_amount = actual_winnings
+    else:
+        user['shekels'] -= bet
+        user['total_lost'] += bet
+        mult_text = "Нет мультипликатора"
+        status = "❌ ПРОИГРЫШ"
+        result_amount = -bet
+
+    user['games_played'] += 1
+    save_user(user_id, user)
+
+    reel_display = f"""
+{reel1[0]} {reel2[0]} {reel3[0]}
+
+**{reel1[1]} {reel2[1]} {reel3[1]}** ← РЕЗУЛЬТАТ
+
+{reel1[2]} {reel2[2]} {reel3[2]}
+"""
+
+    text = f"""
+✨ **СЛОТЫ С МУЛЬТИПЛИКАТОРОМ** ✨
+
+{reel_display}
+
+**{description}**
+
+**{mult_text}**
+
+**Ставка:** {format_currency(bet)}
+
+**{status}**
+
+**{'+' if result_amount > 0 else ''}{result_amount}** 🪙
+
+**Новый баланс:** {format_currency(user['shekels'])}
+"""
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✨ Ещё раз", callback_data="game_slots_multiplier"),
+            InlineKeyboardButton(text="🏠 Меню", callback_data="back_to_menu"),
+        ]
+    ])
+    await message.reply(text, reply_markup=keyboard, parse_mode="Markdown")
+
+
 # =============== СЛОТЫ "УДАЧА ИЛИ СМЕРТЬ" ===============
 
 @dp.callback_query(lambda c: c.data == "game_slots_risk")
@@ -791,6 +889,9 @@ async def slots_risk_menu(callback: types.CallbackQuery, state: FSMContext):
         InlineKeyboardButton(text="10 000 000 🪙", callback_data="slots_risk_bet_10000000"),
         InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="slots_risk_bet_all"),
     ],
+    [
+            InlineKeyboardButton(text="✏️ Своя ставка", callback_data="slots_risk_bet_custom"),
+        ],
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -874,6 +975,96 @@ async def slots_risk_spin(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
 
+@dp.callback_query(lambda c: c.data == "slots_risk_bet_custom")
+async def slots_risk_ask_custom_bet(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(GameStates.slots_risk_custom_bet)
+    await callback.message.edit_text(
+        "✏️ Введите свою ставку для слотов \"Удача или смерть\":",
+        parse_mode="Markdown"
+    )
+    await callback.answer()
+
+
+@dp.message(StateFilter(GameStates.slots_risk_custom_bet))
+async def slots_risk_handle_custom_bet(message: types.Message, state: FSMContext):
+    user_id = message.from_user.id
+    user = get_user(user_id)
+
+    try:
+        bet = int(message.text.strip())
+    except ValueError:
+        await message.reply("❌ Введите целое число шекелей.")
+        return
+
+    if bet <= 0:
+        await message.reply("❌ Ставка должна быть больше нуля.")
+        return
+
+    if bet > user["shekels"]:
+        await message.reply(
+            f"❌ Недостаточно средств! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}",
+            parse_mode="Markdown",
+        )
+        return
+
+    reel1 = spin_slot()
+    reel2 = spin_slot()
+    reel3 = spin_slot()
+
+    result_symbols = [reel1[1], reel2[1], reel3[1]]
+    is_jackpot = result_symbols[0] == result_symbols[1] == result_symbols[2]
+
+    if is_jackpot:
+        winnings = bet * 100
+        user['shekels'] += winnings
+        user['total_won'] += winnings
+        emoji = "🎊🎊🎊"
+        status = "🎉 ВЫИГРЫШ!"
+        message_text = f"ВСЕ ТРИ {result_symbols[0]}! x100 ВЫИГРЫШ!"
+    else:
+        user['shekels'] -= bet
+        user['total_lost'] += bet
+        emoji = "💀💀💀"
+        status = "💀 СМЕРТЬ!"
+        winnings = -bet
+        message_text = "НЕ ВСЕ ТРИ! ВЫ ПОТЕРЯЛИ ВСЁ!"
+
+    user['games_played'] += 1
+    save_user(user_id, user)
+
+    reel_display = f"""
+{reel1[0]} {reel2[0]} {reel3[0]}
+
+**{reel1[1]} {reel2[1]} {reel3[1]}**
+{reel1[2]} {reel2[2]} {reel3[2]}
+
+{emoji}
+"""
+
+    text = f"""
+💀 **СЛОТЫ "УДАЧА ИЛИ СМЕРТЬ"** 💀
+
+{reel_display}
+
+**{message_text}**
+
+**Ставка:** {format_currency(bet)}
+
+**{status}**
+
+**{'+' if winnings > 0 else ''}{winnings}** 🪙
+
+**Баланс:** {format_currency(user['shekels'])}
+"""
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="💀 Ещё раз", callback_data="game_slots_risk"),
+            InlineKeyboardButton(text="🏠 Меню", callback_data="back_to_menu"),
+        ]
+    ])
+    await message.reply(text, reply_markup=keyboard, parse_mode="Markdown")
+
+
 # =============== СЛОТЫ "ЗОЛОТАЯ ЛИХОРАДКА" ===============
 
 @dp.callback_query(lambda c: c.data == "game_slots_gold")
@@ -928,6 +1119,9 @@ async def slots_gold_menu(callback: types.CallbackQuery, state: FSMContext):
     ],
     [InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="slots_gold_bet_all"),
      ],
+     [
+        InlineKeyboardButton(text="✏️ Своя ставка", callback_data="slots_gold_bet_custom"),
+    ],
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -1033,6 +1227,122 @@ async def slots_gold_spin(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
 
+@dp.callback_query(lambda c: c.data == "slots_gold_bet_custom")
+async def slots_gold_ask_custom_bet(callback: types.CallbackQuery, state: FSMContext):
+    """Запрос ввода своей ставки для Золотой лихорадки"""
+    await state.set_state(GameStates.slots_gold_custom_bet)
+    await callback.message.edit_text(
+        "✏️ Введите свою ставку для слотов \"Золотая лихорадка\":",
+        parse_mode="Markdown"
+    )
+    await callback.answer()
+
+
+@dp.message(StateFilter(GameStates.slots_gold_custom_bet))
+async def slots_gold_handle_custom_bet(message: types.Message, state: FSMContext):
+    """Ввод своей ставки и спин Золотой лихорадки"""
+    user_id = message.from_user.id
+    user = get_user(user_id)
+
+    try:
+        bet = int(message.text.strip())
+    except ValueError:
+        await message.reply("❌ Введите целое число шекелей.")
+        return
+
+    if bet <= 0:
+        await message.reply("❌ Ставка должна быть больше нуля.")
+        return
+
+    if bet > user["shekels"]:
+        await message.reply(
+            f"❌ Недостаточно средств! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}",
+            parse_mode="Markdown",
+        )
+        return
+
+    reel1 = spin_gold_slot()
+    reel2 = spin_gold_slot()
+    reel3 = spin_gold_slot()
+
+    result_symbols = [reel1[1], reel2[1], reel3[1]]
+    s1, s2, s3 = result_symbols
+
+    winnings = 0
+    description = ""
+
+    if s1 == s2 == s3:
+        if s1 == '💰':
+            winnings = bet * 200
+            description = "💰💰💰 СУПЕР ЗОЛОТО! 200x!"
+        elif s1 == '💎':
+            winnings = bet * 150
+            description = "💎💎💎 АЛМАЗНЫЕ СОКРОВИЩА! 150x!"
+        elif s1 == '👑':
+            winnings = bet * 100
+            description = "👑👑👑 КОРОЛЕВСКИЙ КЛАД! 100x!"
+        else:
+            winnings = bet * 5
+            description = f"{s1}{s1}{s1} Выигрыш! 5x"
+    elif (s1 == s2 or s2 == s3):
+        symbol = s1 if s1 == s2 else s3
+        if symbol in ['💎', '💰', '👑']:
+            winnings = bet * 20
+            description = f"Два редких {symbol}! 20x"
+        else:
+            winnings = bet * 3
+            description = f"Два {symbol}! 3x"
+    elif s1 == s3:
+        winnings = bet * 2
+        description = f"Две крайние {s1}! 2x"
+    else:
+        description = "Нет выигрыша"
+
+    if winnings > 0:
+        user['shekels'] += winnings
+        user['total_won'] += winnings
+        status = "✅ ВЫИГРЫШ!"
+    else:
+        user['shekels'] -= bet
+        user['total_lost'] += bet
+        status = "❌ НИЧЕГО"
+        winnings = -bet
+
+    user['games_played'] += 1
+    save_user(user_id, user)
+
+    reel_display = f"""
+{reel1[0]} {reel2[0]} {reel3[0]}
+
+**{reel1[1]} {reel2[1]} {reel3[1]}** ← РЕЗУЛЬТАТ
+
+{reel1[2]} {reel2[2]} {reel3[2]}
+"""
+
+    text = f"""
+💰 **СЛОТЫ "ЗОЛОТАЯ ЛИХОРАДКА"** 💰
+
+{reel_display}
+
+**{description}**
+
+**Ставка:** {format_currency(bet)}
+
+**{status}**
+
+**{'+' if winnings > 0 else ''}{winnings}** 🪙
+
+**Баланс:** {format_currency(user['shekels'])}
+"""
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="💰 Ещё раз", callback_data="game_slots_gold"),
+            InlineKeyboardButton(text="🏠 Меню", callback_data="back_to_menu"),
+        ]
+    ])
+    await message.reply(text, reply_markup=keyboard, parse_mode="Markdown")
+
+
 # =============== СЛОТЫ С БЕСПЛАТНЫМИ ВРАЩЕНИЯМИ ===============
 
 @dp.callback_query(lambda c: c.data == "game_slots_free")
@@ -1084,6 +1394,9 @@ async def slots_free_menu(callback: types.CallbackQuery, state: FSMContext):
         InlineKeyboardButton(text="10 000 000 🪙", callback_data="slots_free_bet_10000000"),
         InlineKeyboardButton(text="ВСЁ ИМУЩЕСТВО 🪙", callback_data="slots_free_bet_all"),
     ],
+    [
+            InlineKeyboardButton(text="✏️ Своя ставка", callback_data="slots_free_bet_custom"),
+        ],
             [
                 InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu"),
             ],
@@ -1189,6 +1502,120 @@ async def slots_free_spin(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer() 
 
+@dp.callback_query(lambda c: c.data == "slots_free_bet_custom")
+async def slots_free_ask_custom_bet(callback: types.CallbackQuery, state: FSMContext):
+    """Запрос ввода своей ставки для слотов с бесплатными вращениями"""
+    await state.set_state(GameStates.slots_free_custom_bet)
+    await callback.message.edit_text(
+        "✏️ Введите свою ставку для слотов с бесплатными вращениями:",
+        parse_mode="Markdown"
+    )
+    await callback.answer()
+
+
+@dp.message(StateFilter(GameStates.slots_free_custom_bet))
+async def slots_free_handle_custom_bet(message: types.Message, state: FSMContext):
+    """Ввод своей ставки и спин слотов с бесплатными вращениями"""
+    user_id = message.from_user.id
+    user = get_user(user_id)
+
+    try:
+        bet = int(message.text.strip())
+    except ValueError:
+        await message.reply("❌ Введите целое число шекелей.")
+        return
+
+    if bet <= 0:
+        await message.reply("❌ Ставка должна быть больше нуля.")
+        return
+
+    if bet > user["shekels"]:
+        await message.reply(
+            f"❌ Недостаточно средств! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}",
+            parse_mode="Markdown",
+        )
+        return
+
+    # Первый спин
+    reel1 = spin_slot()
+    reel2 = spin_slot()
+    reel3 = spin_slot()
+
+    result_symbols = [reel1[1], reel2[1], reel3[1]]
+    s1, s2, s3 = result_symbols
+
+    free_spins = 0
+    if s1 == s2 == s3:
+        free_spins = random.randint(5, 10)
+    elif (s1 == s2 or s2 == s3 or s1 == s3):
+        free_spins = random.randint(3, 5)
+
+    reel_display = f"""
+{reel1[0]} {reel2[0]} {reel3[0]}
+
+**{reel1[1]} {reel2[1]} {reel3[1]}** ← РЕЗУЛЬТАТ
+
+{reel1[2]} {reel2[2]} {reel3[2]}
+"""
+
+    base_winnings, first_description = check_win(result_symbols, bet)
+    total_winnings = base_winnings
+
+    free_info = ""
+    if free_spins > 0:
+        free_info = f"\n\n🎁 **{free_spins} БЕСПЛАТНЫХ ВРАЩЕНИЙ!** 🎁"
+        # крутим бесплатные с x2
+        for _ in range(free_spins):
+            free_reel1 = spin_slot()
+            free_reel2 = spin_slot()
+            free_reel3 = spin_slot()
+            free_symbols = [free_reel1[1], free_reel2[1], free_reel3[1]]
+            free_win, _ = check_win(free_symbols, bet)
+            total_winnings += free_win * 2
+
+        free_info += "\n📊 Сумма всех выигрышей с 2x мультипликатором"
+
+    if total_winnings > 0:
+        # списываем ставку, но общий выигрыш больше, поэтому + (total - bet)
+        user['shekels'] += total_winnings - bet
+        user['total_won'] += total_winnings
+        status = "✅ ВЫИГРЫШ!"
+        final_amount = total_winnings
+    else:
+        user['shekels'] -= bet
+        user['total_lost'] += bet
+        status = "❌ БЕЗ ВЫИГРЫША"
+        final_amount = -bet
+        free_info = ""
+
+    user['games_played'] += 1
+    save_user(user_id, user)
+
+    text = f"""
+🎁 **СЛОТЫ "БЕСПЛАТНЫЕ ВРАЩЕНИЯ"** 🎁
+
+{reel_display}
+
+**{first_description}**
+{free_info}
+
+**Ставка:** {format_currency(bet)}
+
+**{status}**
+
+**{'+' if final_amount > 0 else ''}{final_amount}** 🪙
+
+**Баланс:** {format_currency(user['shekels'])}
+"""
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="🎁 Ещё раз", callback_data="game_slots_free"),
+            InlineKeyboardButton(text="🏠 Меню", callback_data="back_to_menu"),
+        ]
+    ])
+    await message.reply(text, reply_markup=keyboard, parse_mode="Markdown")
+
+
 # =============== РУЛЕТКА (личная) ===============
 @dp.callback_query(lambda c: c.data == "game_roulette")
 async def roulette_menu(callback: types.CallbackQuery, state: FSMContext):
@@ -1254,33 +1681,41 @@ async def roulette_menu(callback: types.CallbackQuery, state: FSMContext):
 @dp.callback_query(lambda c: c.data.startswith("roulette_bet_"))
 async def roulette_choose_color(callback: types.CallbackQuery, state: FSMContext):
     """Выбор цвета в рулетке"""
-    
     user_id = callback.from_user.id
     user = get_user(user_id)
-
     data_parts = callback.data.split("_")
+
+    # если нажали "Своя ставка" — передаём в другой хэндлер
+    if data_parts[-1] == "custom":
+        # просто не обрабатываем здесь, этот callback поймает
+        # @dp.callback_query(lambda c: c.data == "roulette_bet_custom")
+        return
+
     if data_parts[-1] == "all":
         bet = user["shekels"]
     else:
         bet = int(data_parts[-1])
-    
+
     if user['shekels'] < bet:
-        await callback.answer(f"❌ Недостаточно! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}", show_alert=True)
+        await callback.answer(
+            f"❌ Недостаточно! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}",
+            show_alert=True
+        )
         return
-    
+
     await state.update_data(roulette_bet=bet)
 
-    
     text = f"""
 🎡 **ВЫБЕРИТЕ ЦВЕТ** 🎡
 
 Ставка: {format_currency(bet)}
 
 Выберите:
+
 🔴 **Красное** - удвоите ставку
+
 ⬛ **Чёрное** - удвоите ставку
-    """
-    
+"""
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="🔴 Красное", callback_data="roulette_red"),
@@ -1290,7 +1725,7 @@ async def roulette_choose_color(callback: types.CallbackQuery, state: FSMContext
             InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_menu")
         ]
     ])
-    
+
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
 
@@ -1302,6 +1737,7 @@ async def roulette_ask_custom_bet(callback: types.CallbackQuery, state: FSMConte
         parse_mode="Markdown"
     )
     await callback.answer()
+
 
     
 @dp.callback_query(lambda c: c.data in ["roulette_red", "roulette_black"])
@@ -1551,12 +1987,15 @@ async def blackjack_handle_custom_bet(message: types.Message, state: FSMContext)
 
     await state.set_state(GameStates.blackjack_playing)
     await state.update_data(
-        bj_deck=deck,
-        bj_player_cards=player_cards,
-        bj_dealer_cards=dealer_cards,
-        bj_bet=bet,
-        bj_player_id=user_id,
-    )
+    bj_deck=deck,
+    bj_player_cards=player_cards,
+    bj_dealer_cards=dealer_cards,
+    bj_bet=bet,
+    bj_player_id=user_id,
+)
+
+# дальше копируешь твой текст/клаву из blackjack_start
+
 
     # дальше копируешь твой текст/клаву из blackjack_start
     text = f"""
@@ -1680,6 +2119,16 @@ async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
     
     await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     await callback.answer()
+
+@dp.callback_query(lambda c: c.data == "bj_bet_custom")
+async def blackjack_ask_custom_bet(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(GameStates.blackjack_custom_bet)
+    await callback.message.edit_text(
+        "✏️ Введите свою ставку для Black Jack числом (минимум 10):",
+        parse_mode="Markdown"
+    )
+    await callback.answer()
+
     
 
 @dp.callback_query(lambda c: c.data == "bj_hit")
