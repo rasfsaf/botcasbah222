@@ -910,7 +910,7 @@ async def slots_risk_menu(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
 
 @dp.callback_query(lambda c: c.data.startswith("slots_risk_bet_"))
-async def slots_risk_spin(callback: types.CallbackQuery, state: FSMContext):
+async def slots_risk_spin(callback: types.CallbackQuery, state: FSMContext): 
     """Вращение слотов Удача или смерть"""
     user_id = callback.from_user.id
     user = get_user(user_id)
@@ -1159,10 +1159,15 @@ async def slots_gold_spin(callback: types.CallbackQuery, state: FSMContext):
     else:
         bet = int(data_parts[-1])
 
-    
     if user['shekels'] < bet:
-        await callback.answer(f"❌ Недостаточно!", show_alert=True)
+        await callback.answer(
+            f"❌ Недостаточно средств!",
+            show_alert=True
+        )
         return
+    
+    # дальше код с reel1 = spin_gold_slot() и т.д.
+
     
     reel1 = spin_gold_slot()
     reel2 = spin_gold_slot()
