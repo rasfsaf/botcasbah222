@@ -460,16 +460,20 @@ async def slots_ask_custom_bet(callback: types.CallbackQuery, state: FSMContext)
 
 @dp.callback_query(lambda c: c.data.startswith("slots_bet_"))
 async def slots_spin(callback: types.CallbackQuery, state: FSMContext):
-    """Вращение слотов"""
-    
+    """Вращение классических слотов"""
     user_id = callback.from_user.id
     user = get_user(user_id)
-
     data_parts = callback.data.split("_")
+
+    # если нажата "Своя ставка" — передаём другому хендлеру
+    if data_parts[-1] == "custom":
+        return
+
     if data_parts[-1] == "all":
         bet = user["shekels"]
     else:
         bet = int(data_parts[-1])
+
     
     if user['shekels'] < bet:
         await callback.answer(f"❌ Недостаточно! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}", show_alert=True)
@@ -665,15 +669,19 @@ async def slots_multiplier_menu(callback: types.CallbackQuery, state: FSMContext
 @dp.callback_query(lambda c: c.data.startswith("slots_mult_bet_"))
 async def slots_multiplier_spin(callback: types.CallbackQuery, state: FSMContext):
     """Вращение слотов с мультипликатором"""
-    
     user_id = callback.from_user.id
     user = get_user(user_id)
-
     data_parts = callback.data.split("_")
+
+    # если нажата "Своя ставка" — передаём другому хендлеру
+    if data_parts[-1] == "custom":
+        return
+
     if data_parts[-1] == "all":
         bet = user["shekels"]
     else:
         bet = int(data_parts[-1])
+
     
     if user['shekels'] < bet:
         await callback.answer(f"❌ Недостаточно!", show_alert=True)
@@ -903,16 +911,20 @@ async def slots_risk_menu(callback: types.CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data.startswith("slots_risk_bet_"))
 async def slots_risk_spin(callback: types.CallbackQuery, state: FSMContext):
-    """Вращение рискованных слотов"""
-    
+    """Вращение слотов Удача или смерть"""
     user_id = callback.from_user.id
     user = get_user(user_id)
-
     data_parts = callback.data.split("_")
+
+    # если нажата "Своя ставка" — передаём другому хендлеру
+    if data_parts[-1] == "custom":
+        return
+
     if data_parts[-1] == "all":
         bet = user["shekels"]
     else:
         bet = int(data_parts[-1])
+
     
     if user['shekels'] < bet:
         await callback.answer(f"❌ Недостаточно!", show_alert=True)
@@ -1134,15 +1146,19 @@ async def slots_gold_menu(callback: types.CallbackQuery, state: FSMContext):
 @dp.callback_query(lambda c: c.data.startswith("slots_gold_bet_"))
 async def slots_gold_spin(callback: types.CallbackQuery, state: FSMContext):
     """Вращение слотов Золотая лихорадка"""
-    
     user_id = callback.from_user.id
     user = get_user(user_id)
-
     data_parts = callback.data.split("_")
+
+    # если нажата "Своя ставка" — передаём другому хендлеру
+    if data_parts[-1] == "custom":
+        return
+
     if data_parts[-1] == "all":
         bet = user["shekels"]
     else:
         bet = int(data_parts[-1])
+
     
     if user['shekels'] < bet:
         await callback.answer(f"❌ Недостаточно!", show_alert=True)
@@ -1409,15 +1425,19 @@ async def slots_free_menu(callback: types.CallbackQuery, state: FSMContext):
 @dp.callback_query(lambda c: c.data.startswith("slots_free_bet_"))
 async def slots_free_spin(callback: types.CallbackQuery, state: FSMContext):
     """Вращение слотов с бесплатными вращениями"""
-    
     user_id = callback.from_user.id
     user = get_user(user_id)
-
     data_parts = callback.data.split("_")
+
+    # если нажата "Своя ставка" — передаём другому хендлеру
+    if data_parts[-1] == "custom":
+        return
+
     if data_parts[-1] == "all":
         bet = user["shekels"]
     else:
         bet = int(data_parts[-1])
+
     
     if user['shekels'] < bet:
         await callback.answer(f"❌ Недостаточно!", show_alert=True)
@@ -2018,16 +2038,20 @@ async def blackjack_handle_custom_bet(message: types.Message, state: FSMContext)
 
 @dp.callback_query(lambda c: c.data.startswith("bj_bet_"))
 async def blackjack_start(callback: types.CallbackQuery, state: FSMContext):
-    """Начало игры Black Jack"""
-    
+    """Начало игры в Black Jack"""
     user_id = callback.from_user.id
     user = get_user(user_id)
-
     data_parts = callback.data.split("_")
+
+    # если нажата "Своя ставка" — передаём другому хендлеру
+    if data_parts[-1] == "custom":
+        return
+
     if data_parts[-1] == "all":
         bet = user["shekels"]
     else:
         bet = int(data_parts[-1])
+
     
     if user['shekels'] < bet:
         await callback.answer(f"❌ Недостаточно! У вас {format_currency(user['shekels'])}, нужно {format_currency(bet)}", show_alert=True)
