@@ -550,6 +550,8 @@ async def slots_handle_classic_custom_bet(message: types.Message, state: FSMCont
         )
         return
 
+    await state.clear()
+
     # дальше копируешь тело из slots_spin, просто вместо bet из callback используешь этот bet
     reel1 = spin_slot()
     reel2 = spin_slot()
@@ -780,6 +782,8 @@ async def slots_mult_handle_custom_bet(message: types.Message, state: FSMContext
             parse_mode="Markdown",
         )
         return
+
+    await state.clear()
 
     reel1 = spin_slot()
     reel2 = spin_slot()
@@ -1019,6 +1023,8 @@ async def slots_risk_handle_custom_bet(message: types.Message, state: FSMContext
             parse_mode="Markdown",
         )
         return
+
+    await state.clear()
 
     reel1 = spin_slot()
     reel2 = spin_slot()
@@ -1278,6 +1284,8 @@ async def slots_gold_handle_custom_bet(message: types.Message, state: FSMContext
             parse_mode="Markdown",
         )
         return
+
+    await state.clear()
 
     reel1 = spin_gold_slot()
     reel2 = spin_gold_slot()
